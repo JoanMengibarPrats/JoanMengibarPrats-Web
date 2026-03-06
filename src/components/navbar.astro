@@ -1,0 +1,286 @@
+---
+// src/components/navbar.astro
+import Github from '../icons/GitHub.astro';
+import Linkedin from '../icons/LinkedIn.astro';
+
+// 1. Importamos nuestras utilidades de idiomas (¡Añadimos getTranslatedPath!)
+import { getLangFromUrl, useTranslations, getTranslatedPath } from '../i18n/utils';
+
+// 2. Obtenemos el idioma actual y preparamos el traductor
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+// 3. Detectamos si estamos en la página principal (Home)
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/' || currentPath === `/${lang}` || currentPath === `/${lang}/`;
+
+// 4. Calculamos la ruta base respetando el idioma para volver desde el blog
+const basePath = lang === 'es' ? '/' : `/${lang}/`;
+---
+
+<nav id="mainNav" class="fixed top-5 left-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center mix-blend-difference pointer-events-none transition-transform duration-300">
+  
+  <div class="flex items-center gap-6 md:gap-8 pointer-events-auto">
+    <a href={basePath} class="text-white font-syncopate text-xl md:text-2xl font-black uppercase tracking-tighter interactable transition-transform hover:scale-105">
+      JF_
+    </a>
+    
+    <div class="flex items-center gap-4 md:gap-5">
+      <a href="https://github.com/JoanMengibarPrats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center">
+        <Github />
+      </a>
+      <a href="https://linkedin.com/in/joanfrancescmengibarprats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center">
+        <Linkedin />
+      </a>
+    </div>
+  </div>
+
+  <ul class="hidden lg:flex items-center gap-12 font-fira text-base font-bold text-white uppercase tracking-widest pointer-events-auto">
+    <li>
+      <button class="openLangModalBtn relative group interactable transition-colors flex items-center pb-1 cursor-pointer">
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity text-green-500 mr-2">></span>
+        <div 
+          class="w-8 h-8 bg-white group-hover:bg-green-400 transition-colors duration-300 transform group-hover:scale-110"
+          style="-webkit-mask: url('/lenguage.svg') no-repeat center; mask: url('/lenguage.svg') no-repeat center; -webkit-mask-size: contain; mask-size: contain;"
+        ></div>
+      </button>
+    </li>
+    
+    {isHome && (
+      <>
+        <li>
+          <a href="#blog" class="nav-link relative group interactable hover:text-green-400 transition-colors flex items-center pb-1">
+            <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 transition-opacity text-green-500 mr-1">></span>
+            {t('nav.blog')}
+            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100 group-[.active]:scale-x-100 group-[.active]:origin-left"></span>
+          </a>
+        </li>
+        <li>
+          <a href="#about" class="nav-link relative group interactable hover:text-green-400 transition-colors flex items-center pb-1">
+            <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 transition-opacity text-green-500 mr-1">></span>
+            {t('nav.about')}
+            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100 group-[.active]:scale-x-100 group-[.active]:origin-left"></span>
+          </a>
+        </li>
+      </>
+    )}
+  </ul>
+
+  <button id="openMobileMenuBtn" class="block lg:hidden pointer-events-auto interactable p-2 group">
+    <div 
+      id="openIcon"
+      class="w-8 h-8 bg-white group-hover:bg-green-400 transition-all duration-500 transform origin-center rotate-0 scale-100 opacity-100"
+      style="-webkit-mask: url('/menu.svg') no-repeat center; mask: url('/menu.svg') no-repeat center; -webkit-mask-size: contain; mask-size: contain;"
+    ></div>
+  </button>
+</nav>
+
+<div id="mobileMenuOverlay" class="fixed inset-0 z-[100] bg-[#050505]/95 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500 flex flex-col justify-center items-center">
+  
+  <button id="closeMobileMenuBtn" class="absolute top-[52px] right-6 md:right-12 p-2 interactable group">
+    <div 
+      id="closeIcon"
+      class="w-8 h-8 bg-zinc-500 group-hover:bg-green-400 transition-all duration-500 transform origin-center -rotate-90 scale-50 opacity-0"
+      style="-webkit-mask: url('/x.svg') no-repeat center; mask: url('/x.svg') no-repeat center; -webkit-mask-size: contain; mask-size: contain;"
+    ></div>
+  </button>
+
+  <div id="mobileMenuLinks" class="flex flex-col items-center gap-12 font-fira text-2xl font-bold text-white uppercase tracking-widest transform translate-y-8 transition-transform duration-500">
+    
+    {isHome && (
+      <>
+        <a href="#blog" class="nav-link mobile-nav-link relative group interactable hover:text-green-400 transition-colors flex items-center pb-2">
+          <span class="absolute -left-6 opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 transition-opacity text-green-500">></span>
+          {t('nav.blog')}
+          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100 group-[.active]:scale-x-100 group-[.active]:origin-left"></span>
+        </a>
+        <a href="#about" class="nav-link mobile-nav-link relative group interactable hover:text-green-400 transition-colors flex items-center pb-2">
+          <span class="absolute -left-6 opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 transition-opacity text-green-500">></span>
+          {t('nav.about')}
+          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100 group-[.active]:scale-x-100 group-[.active]:origin-left"></span>
+        </a>
+        
+        <div class="w-[80%] h-[1px] bg-zinc-800 my-2"></div> 
+      </>
+    )}
+    
+    <button class="openLangModalBtn mobile-nav-link text-zinc-400 hover:text-green-400 transition-colors flex items-center justify-center group p-2">
+      <div 
+        class="w-10 h-10 bg-zinc-400 group-hover:bg-green-400 transition-colors duration-300 transform group-hover:scale-110"
+        style="-webkit-mask: url('/lenguage.svg') no-repeat center; mask: url('/lenguage.svg') no-repeat center; -webkit-mask-size: contain; mask-size: contain;"
+      ></div>
+    </button>
+  </div>
+</div>
+
+<div id="langModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+  <div class="lang-modal-content relative bg-[#0a0a0a] border border-zinc-800 p-8 md:p-12 min-w-[300px] scale-95 transition-transform duration-300 flex flex-col items-center shadow-[0_0_40px_rgba(74,222,128,0.05)]">
+    <button id="closeLangModal" class="absolute top-4 right-5 text-zinc-500 hover:text-green-400 transition-colors font-fira text-xl font-bold uppercase tracking-widest interactable">[X]</button>
+    
+    <h3 class="font-fira text-zinc-500 text-xs md:text-sm tracking-widest uppercase mb-8 border-b border-zinc-800 pb-2 w-full text-center select-none">
+      {t('nav.modalTitle')}
+    </h3>
+    
+    <ul class="flex flex-col gap-6 w-full">
+      <li>
+        <a href={getTranslatedPath(Astro.url, 'es')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="es">
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>Español
+        </a>
+      </li>
+      <li>
+        <a href={getTranslatedPath(Astro.url, 'en')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="en">
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>English
+        </a>
+      </li>
+      <li>
+        <a href={getTranslatedPath(Astro.url, 'va')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="va">
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>Valencià
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- 4.1 LÓGICA DEL SCROLLSPY ---
+    const sections = document.querySelectorAll('section[id]');
+    if (sections.length > 0) {
+      const navLinks = document.querySelectorAll('.nav-link');
+      const observerOptions = { root: null, rootMargin: '0px', threshold: 0.5 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            navLinks.forEach(link => {
+              if(link.getAttribute('href')?.startsWith('#')) {
+                 link.classList.remove('active');
+                 if (link.getAttribute('href') === `#${id}`) link.classList.add('active');
+              }
+            });
+          }
+        });
+      }, observerOptions);
+      sections.forEach(section => observer.observe(section));
+    }
+
+    // --- 4.2 LÓGICA DEL MENÚ MÓVIL CON ANIMACIÓN DE ICONOS ---
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const mobileMenuLinksContainer = document.getElementById('mobileMenuLinks');
+    const openMobileMenuBtn = document.getElementById('openMobileMenuBtn');
+    const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link:not(.openLangModalBtn)');
+    
+    const openIcon = document.getElementById('openIcon');
+    const closeIcon = document.getElementById('closeIcon');
+
+    const openMobileMenu = () => {
+      if(mobileMenuOverlay && mobileMenuLinksContainer) {
+        mobileMenuOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        mobileMenuOverlay.classList.add('opacity-100', 'pointer-events-auto');
+        mobileMenuLinksContainer.classList.remove('translate-y-8');
+        mobileMenuLinksContainer.classList.add('translate-y-0');
+        document.body.style.overflow = 'hidden'; 
+        
+        if(openIcon) openIcon.classList.add('rotate-90', 'scale-50', 'opacity-0');
+        if(closeIcon) {
+          closeIcon.classList.remove('-rotate-90', 'scale-50', 'opacity-0');
+          closeIcon.classList.add('rotate-0', 'scale-100', 'opacity-100');
+        }
+      }
+    };
+
+    const closeMobileMenu = () => {
+      if(mobileMenuOverlay && mobileMenuLinksContainer) {
+        mobileMenuOverlay.classList.remove('opacity-100', 'pointer-events-auto');
+        mobileMenuOverlay.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenuLinksContainer.classList.remove('translate-y-0');
+        mobileMenuLinksContainer.classList.add('translate-y-8');
+        document.body.style.overflow = ''; 
+
+        if(openIcon) openIcon.classList.remove('rotate-90', 'scale-50', 'opacity-0');
+        if(closeIcon) {
+          closeIcon.classList.remove('rotate-0', 'scale-100', 'opacity-100');
+          closeIcon.classList.add('-rotate-90', 'scale-50', 'opacity-0');
+        }
+      }
+    };
+
+    if (openMobileMenuBtn) openMobileMenuBtn.addEventListener('click', openMobileMenu);
+    if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
+    mobileNavLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+
+    // --- 4.3 LÓGICA DEL MODAL DE IDIOMAS ---
+    const langModal = document.getElementById('langModal');
+    const modalContent = langModal?.querySelector('.lang-modal-content');
+    const closeLangBtn = document.getElementById('closeLangModal');
+    const langBtns = document.querySelectorAll('.openLangModalBtn'); 
+    const langOptions = document.querySelectorAll('.lang-option');
+    
+    const currentLang = document.documentElement.lang || 'es';
+
+    langOptions.forEach(option => {
+      option.classList.remove('active');
+      if (option instanceof HTMLElement && option.dataset.lang === currentLang) option.classList.add('active');
+    });
+
+    const openLangModal = () => {
+      if(langModal && modalContent) {
+        langModal.classList.remove('opacity-0', 'pointer-events-none');
+        langModal.classList.add('opacity-100', 'pointer-events-auto');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+        document.body.style.overflow = 'hidden'; 
+      }
+    };
+
+    const closeLangModal = () => {
+      if(langModal && modalContent) {
+        langModal.classList.remove('opacity-100', 'pointer-events-auto');
+        langModal.classList.add('opacity-0', 'pointer-events-none');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        if (!mobileMenuOverlay?.classList.contains('opacity-100')) document.body.style.overflow = ''; 
+      }
+    };
+
+    langBtns.forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); openLangModal(); }); });
+    if (closeLangBtn) closeLangBtn.addEventListener('click', closeLangModal);
+    if (langModal) langModal.addEventListener('click', (e) => { if (e.target === langModal) closeLangModal(); });
+    
+    document.addEventListener('keydown', (e) => { 
+      if (e.key === 'Escape') {
+        if (!langModal?.classList.contains('opacity-0')) closeLangModal();
+        else if (!mobileMenuOverlay?.classList.contains('opacity-0')) closeMobileMenu();
+      } 
+    });
+
+    langOptions.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.preventDefault(); 
+        langOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        closeLangModal();
+        const targetUrl = option.getAttribute('href');
+        if (targetUrl) setTimeout(() => { window.location.href = targetUrl; }, 300);
+      });
+    });
+
+    // --- 4.4 LÓGICA DE OCULTAR NAVBAR EN MÓVIL AL HACER SCROLL ---
+    const mainNav = document.getElementById('mainNav');
+    let lastScrollY = window.scrollY;
+
+    window.addEventListener('scroll', () => {
+      if (window.innerWidth >= 1024) {
+        mainNav?.classList.remove('-translate-y-[150%]'); 
+        return;
+      }
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 50) mainNav?.classList.add('-translate-y-[150%]');
+      else mainNav?.classList.remove('-translate-y-[150%]');
+      lastScrollY = currentScrollY;
+    }, { passive: true });
+
+  });
+</script>

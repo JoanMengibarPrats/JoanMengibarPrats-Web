@@ -1,14 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import NameLayer from '../components/home/NameLayer.astro';
-import CodeMaskLayer from '../components/home/CodeMaskLayer.astro';
-import About from '../components/about/About.astro';
-import LavaLampBackground from '../components/blog/LavaLampBackground.astro';
-import FeaturedBlogs from '../components/blog/FeaturedBlogs.astro'
-import Samoyedo from '../components/SamoyedGame.astro'
+// src/pages/en/index.astro
+import Layout from '../../layouts/Layout.astro';
+import NameLayer from '../../components/home/NameLayer.astro';
+import CodeMaskLayer from '../../components/home/CodeMaskLayer.astro';
+import About from '../../components/about/About.astro';
+import LavaLampBackground from '../../components/blog/LavaLampBackground.astro';
+import FeaturedBlogs from '../../components/blog/FeaturedBlogs.astro';
+import Samoyedo from '../../components/SamoyedGame.astro';
 ---
 
-<Layout>
+<Layout title="Joan Francesc Mengibar Prats - English">
   <section id="home" class="relative w-screen h-screen overflow-hidden">
     <NameLayer />
     <CodeMaskLayer />
@@ -18,7 +19,6 @@ import Samoyedo from '../components/SamoyedGame.astro'
     <LavaLampBackground />
     <FeaturedBlogs />
   </section>
-  
 
   <About />
 
@@ -33,23 +33,13 @@ import Samoyedo from '../components/SamoyedGame.astro'
     let isVisible = false;
     let isHoveringElement = false;
 
-    // --- NUEVA LÓGICA DE RADIO INTELIGENTE ---
     const getBaseRadius = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // 1. Móvil tumbado (Landscape): El ancho es mayor que el alto, pero el alto es pequeño (< 600px)
-      if (w > h && h < 600) {
-        return 120; // Tamaño reducido para que no invada toda la altura de la pantalla
-      }
-      
-      // 2. Móvil / Tablet en vertical (Portrait): Ancho de pantalla menor a 768px
-      if (w < 768) {
-        return 130; // Aumentamos de 100 a 160 para que la lupa sea más generosa en el móvil
-      }
-
-      // 3. Escritorio (PC) / Tablets grandes
-      return 220; // Un poco más grande para pantallas grandes
+      if (w > h && h < 600) return 120;
+      if (w < 768) return 130;
+      return 220;
     };
 
     const interactables = document.querySelectorAll('.interactable');
@@ -92,7 +82,6 @@ import Samoyedo from '../components/SamoyedGame.astro'
       }
     };
 
-    // Aplicamos los eventos solo al homeSection
     if (homeSection) {
       homeSection.addEventListener('mousemove', (e) => {
         const rect = homeSection.getBoundingClientRect();

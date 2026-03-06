@@ -1,0 +1,144 @@
+---
+// src/components/home/NameLayer.astro
+
+// 1. Importamos nuestras utilidades de idiomas
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+
+// 2. Obtenemos el idioma actual y preparamos el traductor
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+  <section class="absolute inset-0 flex flex-col items-start z-10 bg-black overflow-hidden
+  pl-6 md:pl-16 pr-4
+  portrait:justify-center 
+  landscape:justify-end landscape:pb-[15vh] md:landscape:pb-16
+  lg:justify-end lg:pb-16">
+  
+  <h1 class="text-white leading-none text-left select-none tracking-tighter uppercase font-syncopate w-full max-w-[100vw]
+    text-[13dvw] sm:text-[11dvw] md:text-[9dvw] lg:text-[10dvw]
+    landscape:text-[clamp(2rem,14dvh,6rem)] 
+    lg:landscape:text-[10dvw] xl:text-[10.5dvw]">
+    
+    <span class="flex flex-wrap max-w-full">
+      <span class="hacker-letter transition-colors duration-100" data-original="J">J</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="O">O</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="A">A</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="N">N</span>
+    </span>
+    
+    <span class="flex flex-wrap max-w-full">
+      <span class="hacker-letter transition-colors duration-100" data-original="F">F</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="R">R</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="A">A</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="N">N</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="C">C</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="E">E</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="S">S</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="C">C</span>
+    </span>
+
+    <span class="flex flex-wrap max-w-full">
+      <span class="hacker-letter transition-colors duration-100" data-original="M">M</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="E">E</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="N">N</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="G">G</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="Í">Í</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="B">B</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="A">A</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="R">R</span>
+    </span>
+
+    <span class="flex flex-wrap max-w-full">
+      <span class="hacker-letter transition-colors duration-100" data-original="P">P</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="R">R</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="A">A</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="T">T</span>
+      <span class="hacker-letter transition-colors duration-100" data-original="S">S</span>
+    </span>
+  </h1>
+
+  <div class="absolute bottom-10 md:bottom-20 right-8 md:right-16 z-50 font-fira text-sm md:text-base font-bold text-white uppercase tracking-widest pointer-events-auto">
+    <a href="#blog" class="relative group interactable hover:text-green-400 transition-colors flex items-center">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity text-green-500 mr-1">></span>
+      {t('home.scroll')}
+    </a>
+  </div>
+  
+</section>
+
+<script>
+  // ... (Tu script del efecto hacker se queda exactamente igual)
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+<>{}[]";
+  const letters = document.querySelectorAll('.hacker-letter');
+
+  const calculateWidths = () => {
+    letters.forEach((letter) => {
+      const el = letter as HTMLElement;
+      el.style.width = 'auto'; 
+      const rect = el.getBoundingClientRect();
+      el.style.width = `${rect.width}px`;
+      el.style.display = 'inline-block';
+      el.style.textAlign = 'center';
+    });
+  };
+
+  document.fonts.ready.then(calculateWidths);
+
+  let resizeTimer: number;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(calculateWidths, 200);
+  });
+
+  const triggerHackerEffect = (el: HTMLElement) => {
+    let iterations = 0;
+    const original = el.dataset.original;
+    
+    if (el.dataset.interval) {
+      clearInterval(parseInt(el.dataset.interval));
+    }
+
+    el.classList.add('text-green-500');
+
+    const interval = setInterval(() => {
+      el.innerText = chars[Math.floor(Math.random() * chars.length)];
+      iterations++;
+
+      if (iterations >= 30) {
+        clearInterval(interval);
+        el.innerText = original || '';
+        el.classList.remove('text-green-500');
+      }
+    }, 50);
+
+    el.dataset.interval = interval.toString();
+  };
+
+  letters.forEach((letter) => {
+    letter.addEventListener('mouseleave', () => triggerHackerEffect(letter as HTMLElement));
+  });
+
+  let lastTouchedElement: Element | null = null;
+
+  document.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const currentElement = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (
+      lastTouchedElement && 
+      lastTouchedElement.classList.contains('hacker-letter') && 
+      lastTouchedElement !== currentElement
+    ) {
+      triggerHackerEffect(lastTouchedElement as HTMLElement);
+    }
+    
+    lastTouchedElement = currentElement;
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (lastTouchedElement && lastTouchedElement.classList.contains('hacker-letter')) {
+      triggerHackerEffect(lastTouchedElement as HTMLElement);
+    }
+    lastTouchedElement = null;
+  });
+</script>

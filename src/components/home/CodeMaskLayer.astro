@@ -1,0 +1,127 @@
+---
+// src/components/home/CodeMaskLayer.astro
+
+// 1. Importamos nuestras utilidades de idiomas
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+
+// 2. Obtenemos el idioma actual y preparamos el traductor
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+// --- 1. DATOS DEL CÓDIGO BASE (Gris/Negro, estructurado en columnas) ---
+const rawSnippets = [
+  `void check_auth() {
+  if (ptrace(PTRACE_TRACEME, 0, 1, 0) < 0) {
+    exit(1);
+  }
+}`,
+  `00000000  7f 45 4c 46 02 01 01 00  00 00 00 00 00 00 00 00  |.ELF............|
+00000010  03 00 3e 00 01 00 00 00  b0 10 40 00 00 00 00 00  |..>.......@.....|
+00000020  40 00 00 00 00 00 00 00  30 3a 00 00 00 00 00 00  |@.......0:......|`,
+  `[mitmAP] wlan1: AP-STA-CONNECTED 00:1a:2b:3c:4d:5e
+[mitmAP] Capturing IoT MQTT traffic on port 1883
+Client mosq/dev-8f7a sending PUBLISH (d0, q0, r0, m1)
+Payload: {"cmd":"unlock","token":"0xDEADBEEF"}`,
+  `DECIMAL       HEX       DESCRIPTION
+---------------------------------------------------------
+0             0x0       TRX firmware header, CRC32: 0x5A4B
+28            0x1C      LZMA compressed data, dict: 65536
+1048576       0x100000  Squashfs filesystem, version 4.0`,
+  `U-Boot 2012.04.01 (Oct 24 2023 - 14:22:11)
+DRAM:  256 MiB
+Flash: 16 MiB
+In:    serial
+=> printenv
+bootargs=console=ttyS0,115200 root=/dev/mtdblock2`,
+  `0x00401150 <+0>:     endbr64 
+0x00401154 <+4>:     push   %rbp
+0x00401155 <+5>:     mov    %rsp,%rbp
+0x00401158 <+8>:     sub    $0x20,%rsp
+0x0040115c <+12>:    mov    %edi,-0x14(%rbp)`,
+  `$ flashrom -p ft2232_spi:type=232H -r dump.bin
+Found Winbond flash chip "W25Q128.V" (16384 kB, SPI)
+Reading flash... done.
+Verifying flash... VERIFIED.`,
+  `import socket, struct
+buf =  b"\\xba\\x19\\x5d\\x9c\\x4a\\xdb\\xc9\\xd9\\x74"
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(("192.168.1.15", 445))
+s.send(buf)`,
+  `struct elf_file {
+    Elf64_Ehdr header;
+    Elf64_Phdr *p_headers;
+    Elf64_Shdr *s_headers;
+    uint8_t *mem;
+    size_t size;
+};`,
+  `gef➤  checksec
+  Canary                        : ✘ 
+  NX                            : ✓ 
+  PIE                           : ✘ 
+  RelRO                         : Partial`,
+  `VFS: Mounted root (squashfs) readonly on device 31:2.
+Freeing unused kernel memory: 1024K
+Run /sbin/init as init process
+Starting dropbear sshd: OK`,
+  `bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+addr.sin_port = htons(port);
+addr.sin_family = AF_INET;
+sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);`
+];
+
+const baseBlocks = Array.from({ length: 40 }).map(() => {
+  const blurs = ['blur-none', 'blur-none', 'blur-none', 'blur-[1px]', 'blur-[2px]'];
+  return {
+    text: rawSnippets[Math.floor(Math.random() * rawSnippets.length)],
+    size: ['text-sm md:text-base', 'text-base md:text-lg', 'text-lg md:text-xl', 'text-xl md:text-2xl'][Math.floor(Math.random() * 4)],
+    opacity: ['opacity-30', 'opacity-50', 'opacity-70', 'opacity-90'][Math.floor(Math.random() * 4)],
+    weight: ['font-medium', 'font-bold', 'font-black'][Math.floor(Math.random() * 3)],
+    blur: blurs[Math.floor(Math.random() * blurs.length)],
+  };
+});
+
+
+// --- 2. FONDO BINARIO (Letras grandes, desbordando bordes) ---
+const binaryContent = Array.from({ length: 100 }).map(() => 
+  Array.from({ length: 150 }).map(() => Math.round(Math.random())).join(' ')
+).join('\n');
+---
+
+<section 
+  id="mask-layer" 
+  class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none isolate" 
+  style="clip-path: circle(0px at 50% 50%); transform: translateZ(0); will-change: clip-path;">
+  
+  <div class="absolute inset-0 bg-white w-full h-full -z-10" style="backface-visibility: hidden; transform: translateZ(0);"></div>
+
+  <div class="absolute inset-[-5%] w-[110%] h-[110%] z-0 overflow-hidden flex items-start justify-start pointer-events-none select-none opacity-[0.12] blur-[2px]">
+    <pre class="font-fira text-lg md:text-2xl font-black leading-none tracking-widest text-[#222] whitespace-pre-wrap break-all w-full h-full">
+      {binaryContent}
+    </pre>
+  </div>
+
+  <div class="absolute inset-0 p-4 pt-32 md:p-8 md:pt-32 overflow-hidden z-10 w-full h-full pointer-events-none 
+              columns-1 sm:columns-2 md:columns-3 xl:columns-4 gap-8 md:gap-12 text-[#222] font-fira">
+    {baseBlocks.map((block) => (
+      <div class={`mb-8 md:mb-12 break-inside-avoid ${block.opacity} ${block.weight} ${block.blur} transition-all duration-300`}>
+        <pre class={`${block.size} leading-tight tracking-tight whitespace-pre-wrap word-break-all`}>{block.text}</pre>
+      </div>
+    ))}
+  </div>
+
+  <div class="relative w-[50vmin] md:w-[40vmin] max-w-[400px] min-w-[180px] aspect-square rounded-full overflow-hidden border-[4px] md:border-[6px] border-white shadow-[0_0_80px_rgba(0,0,0,0.1)] z-30 flex items-center justify-center bg-zinc-100 shrink-0">
+    <img 
+      src="/prueba.jpg" 
+      alt="Joan Francesc" 
+      class="w-full h-full object-cover grayscale contrast-125 brightness-100 relative z-10"
+    />
+  </div>
+  
+  <div class="absolute bottom-10 md:bottom-20 right-8 md:right-16 z-50 font-fira text-sm md:text-base font-bold text-[#222] uppercase tracking-widest pointer-events-auto">
+    <a href="#blog" class="relative group interactable hover:text-black transition-colors flex items-center">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity text-black mr-1">></span>
+      {t('home.scroll')}
+    </a>
+  </div>
+  
+</section>

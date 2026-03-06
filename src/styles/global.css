@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* 1. Cargamos el archivo físico desde tu carpeta public */
+@font-face {
+  font-family: 'Syncopate Local';
+  src: url('/fonts/Syncopate-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Le decimos a Tailwind que use nuestra fuente local */
+@theme {
+  --font-syncopate: 'Syncopate Local', sans-serif;
+}

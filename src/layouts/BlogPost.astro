@@ -1,42 +1,275 @@
 ---
 import Layout from './Layout.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
-// Recibimos las propiedades (frontmatter) que le pasaremos desde [slug].astro
 const { title, description, pubDate, tags } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const basePath = lang === 'es' ? '' : `/${lang}`;
+
+const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+const formattedDate = pubDate.toLocaleDateString(
+  lang === 'es' ? 'es-ES' : lang === 'va' ? 'ca-ES' : 'en-US',
+  dateOptions
+);
 ---
 
 <Layout title={`${title} | Joan Francesc`}>
-  <main class="min-h-screen pt-32 px-6 md:px-12 max-w-4xl mx-auto font-fira">
+  
+  <div class="flex w-full min-h-screen">
     
-    <div class="mb-8">
-      <a href="/blog" class="inline-block text-green-500 hover:text-green-400 hover:bg-green-500/10 px-3 py-1 rounded transition-colors font-mono border border-transparent hover:border-green-500/30">
-        $ cd ..
-      </a>
-    </div>
-    
-    <article class="border border-zinc-800 bg-zinc-950 p-6 md:p-10 rounded">
-      <header class="border-b border-zinc-800 pb-6 mb-8">
-        <h1 class="text-3xl md:text-5xl font-bold text-gray-200 mb-4 font-syncopate">
-          > {title}
-        </h1>
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 text-zinc-500 font-mono text-sm">
-          <time datetime={pubDate.toISOString()}>
-            [{pubDate.toLocaleDateString('es-ES')}]
-          </time>
-          {tags && (
-            <div class="flex gap-2 flex-wrap">
-              {tags.map((tag: string) => (
-                 <span class="text-green-500 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded text-xs">#{tag}</span>
-              ))}
-            </div>
-          )}
+    <div class="hidden xl:flex flex-1 justify-center">
+      
+      <aside class="sticky top-0 h-screen flex flex-col justify-center w-48 2xl:w-56 z-40">
+        
+        <div id="toc-wrapper" class="opacity-0 transition-opacity duration-500 max-h-[60vh] overflow-y-auto toc-scrollbar pr-4">
+          <h4 class="font-syncopate text-white text-sm mb-6 uppercase tracking-widest border-b border-zinc-900 pb-4">
+            > Index
+          </h4>
+          <nav id="toc-container" class="flex flex-col gap-4 border-l border-zinc-900 pl-4 relative font-mono text-sm">
+            <div id="toc-indicator" class="absolute left-[-1px] top-0 w-[2px] h-0 bg-green-500 transition-all duration-300"></div>
+          </nav>
         </div>
-      </header>
-      
-      <div class="text-gray-300 leading-relaxed space-y-4">
-        <slot />
-      </div>
-      
-    </article>
-  </main>
+
+        <div class="mt-12 pt-8 border-t border-zinc-900/50">
+          <a href={`${basePath}/blog`} class="group text-zinc-500 hover:text-green-400 font-mono text-sm transition-colors uppercase tracking-widest flex items-center w-fit">
+            <span class="text-green-500 mr-2 transform transition-transform group-hover:-translate-x-1"></span> blog
+          </a>
+        </div>
+
+      </aside>
+
+    </div>
+
+    <main class="w-full max-w-3xl px-6 md:px-12 pt-32 pb-32 shrink-0 font-fira relative">
+      <article class="w-full">
+        
+        <div class="mb-12 xl:hidden">
+          <a href={`${basePath}/blog`} class="group text-zinc-500 hover:text-green-400 font-mono text-sm transition-colors uppercase tracking-widest flex items-center w-fit">
+            <span class="text-green-500 mr-2 transform transition-transform group-hover:-translate-x-1"></span> blog
+          </a>
+        </div>
+
+        <header class="mb-16">
+          <h1 class="text-3xl md:text-5xl lg:text-6xl font-syncopate font-bold text-white mb-8 uppercase tracking-tighter leading-[1.1]">
+            {title}
+          </h1>
+          
+          <div class="flex flex-wrap items-center gap-4 text-zinc-500 font-mono text-xs md:text-sm border-b border-zinc-900 pb-8">
+            <time datetime={pubDate.toISOString()}>
+              {formattedDate}
+            </time>
+            {tags && tags.length > 0 && (
+              <>
+                <span class="text-zinc-800">|</span>
+                <div class="flex gap-3">
+                  {tags.map((tag: string) => (
+                     <span class="text-green-500/80">#{tag}</span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+        
+        <div class="minimal-prose relative">
+          <slot />
+        </div>
+        
+        <footer class="mt-20 pt-12 border-t border-zinc-900">
+          <a href={`${basePath}/blog`} class="group text-zinc-400 hover:text-green-400 font-mono text-base transition-colors uppercase tracking-widest flex items-center w-fit">
+            <span class="text-green-500 mr-2 transform transition-transform group-hover:-translate-x-1"></span> blog
+          </a>
+        </footer>
+
+      </article>
+    </main>
+
+    <div class="hidden xl:block flex-1"></div>
+
+  </div>
 </Layout>
+
+<style is:global>
+  .toc-scrollbar::-webkit-scrollbar { width: 0px; background: transparent; }
+  .toc-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* * ESTÉTICA MINIMALISTA PURA */
+  .minimal-prose {
+    color: #a1a1aa; 
+    font-size: 1rem;
+    line-height: 1.8;
+    font-family: 'Fira Code', monospace;
+  }
+  
+  @media (min-width: 768px) {
+    .minimal-prose { font-size: 1.125rem; }
+  }
+
+  .minimal-prose p { margin-bottom: 2rem; }
+  
+  .minimal-prose h2 {
+    font-family: 'Syncopate', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 5rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    scroll-margin-top: 120px; 
+  }
+  
+  @media (min-width: 768px) {
+    .minimal-prose h2 { font-size: 2rem; }
+  }
+  
+  .minimal-prose h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+    scroll-margin-top: 120px;
+  }
+
+  .minimal-prose a {
+    color: #e5e7eb;
+    border-bottom: 1px solid #22c55e;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    padding-bottom: 1px;
+  }
+  .minimal-prose a:hover { color: #22c55e; }
+
+  .minimal-prose blockquote {
+    border-left: 1px solid #22c55e;
+    padding-left: 1.5rem;
+    margin: 3rem 0;
+    color: #71717a; 
+    font-style: italic;
+  }
+
+  .minimal-prose ul {
+    list-style: none;
+    margin-bottom: 2rem;
+    padding-left: 0;
+  }
+  .minimal-prose ul li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .minimal-prose ul li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+  }
+
+  .minimal-prose ol {
+    list-style-type: decimal-leading-zero;
+    list-style-position: inside;
+    margin-bottom: 2rem;
+    padding-left: 0;
+    color: #d4d4d8;
+  }
+  .minimal-prose ol li::marker {
+    color: #22c55e;
+    font-family: 'Syncopate', sans-serif;
+  }
+
+  .minimal-prose strong { color: #f4f4f5; font-weight: 700; }
+  .minimal-prose code { color: #4ade80; font-size: 0.85em; }
+
+  .minimal-prose pre {
+    background-color: transparent;
+    border: 1px solid #27272a;
+    padding: 1.5rem;
+    overflow-x: auto;
+    margin: 3rem 0;
+    font-size: 0.9em;
+  }
+  .minimal-prose pre code { color: #d1d5db; }
+
+  .minimal-prose img {
+    width: 100%;
+    margin: 3rem 0;
+    filter: grayscale(100%) contrast(1.1);
+    transition: filter 0.5s ease;
+  }
+  .minimal-prose img:hover { filter: grayscale(0%) contrast(1); }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const prose = document.querySelector('.minimal-prose');
+    const tocWrapper = document.getElementById('toc-wrapper');
+    const tocContainer = document.getElementById('toc-container');
+    const indicator = document.getElementById('toc-indicator');
+
+    if (!prose || !tocContainer || !tocWrapper) return;
+
+    const headings = Array.from(prose.querySelectorAll('h2, h3'));
+    
+    if (headings.length === 0) {
+      tocWrapper.style.display = 'none';
+      return;
+    }
+
+    tocWrapper.classList.remove('opacity-0');
+    const tocLinks: HTMLAnchorElement[] = [];
+
+    headings.forEach((heading) => {
+      if (!heading.id) {
+        heading.id = (heading.textContent || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      }
+
+      const link = document.createElement('a');
+      link.href = `#${heading.id}`;
+      link.textContent = heading.textContent;
+      
+      const isSubHeading = heading.tagName === 'H3';
+      link.className = `block transition-colors duration-300 hover:text-green-400 leading-relaxed ${isSubHeading ? 'ml-3 text-zinc-600' : 'text-zinc-400'}`;
+      
+      tocContainer.appendChild(link);
+      tocLinks.push(link);
+    });
+
+    let activeIndex = -1;
+
+    const updateToc = () => {
+      let current = -1;
+      
+      headings.forEach((heading, index) => {
+        const rect = heading.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.4) {
+          current = index;
+        }
+      });
+
+      if (current === -1 && window.scrollY > 0) current = 0;
+
+      if (current !== -1 && current !== activeIndex && indicator) {
+        activeIndex = current;
+
+        tocLinks.forEach((l, idx) => {
+          const isSub = headings[idx].tagName === 'H3';
+          l.classList.remove('text-green-500');
+          l.classList.add(isSub ? 'text-zinc-600' : 'text-zinc-400');
+        });
+
+        const activeLink = tocLinks[activeIndex];
+        activeLink.classList.remove('text-zinc-400', 'text-zinc-600');
+        activeLink.classList.add('text-green-500');
+
+        indicator.style.top = `${activeLink.offsetTop}px`;
+        indicator.style.height = `${activeLink.offsetHeight}px`;
+      }
+    };
+
+    window.addEventListener('scroll', updateToc, { passive: true });
+    updateToc();
+  });
+</script>

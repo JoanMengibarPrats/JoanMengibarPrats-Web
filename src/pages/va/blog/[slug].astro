@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+import BlogPost from '../../../layouts/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  
+  const valencianPosts = posts.filter(post => post.slug.startsWith('va/'));
+  
+  return valencianPosts.map(post => {
+    const cleanSlug = post.slug.replace('va/', '');
+    
+    return {
+      params: { slug: cleanSlug }, 
+      props: { post },             
+    };
+  });
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+<BlogPost {...post.data}>
+  <Content />
+</BlogPost>

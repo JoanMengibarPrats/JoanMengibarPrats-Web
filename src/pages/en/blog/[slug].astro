@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import BlogPost from '../../../layouts/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  
+  // Filtramos solo los de la subcarpeta "en/"
+  const englishPosts = posts.filter(post => post.slug.startsWith('en/'));
+  
+  return englishPosts.map(post => {
+    // Quitamos el "en/" para que la URL sea limpia
+    const cleanSlug = post.slug.replace('en/', '');
+    
+    return {
+      params: { slug: cleanSlug }, 
+      props: { post },             
+    };
+  });
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+<BlogPost {...post.data}>
+  <Content />
+</BlogPost>

@@ -1,16 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
+// 1. IMPORTANTE: Añadimos 'render' a la importación
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   
-  // Filtramos solo los de la subcarpeta "en/"
-  const englishPosts = posts.filter(post => post.slug.startsWith('en/'));
+  // 2. Cambiamos 'post.slug' por 'post.id'
+  const spanishPosts = posts.filter(post => post.id.startsWith('en/'));
   
-  return englishPosts.map(post => {
-    // Quitamos el "en/" para que la URL sea limpia
-    const cleanSlug = post.slug.replace('en/', '');
+  return spanishPosts.map(post => {
+    // 3. Cambiamos 'post.slug' por 'post.id' aquí también
+    const cleanSlug = post.id.replace('en/', '');
     
     return {
       params: { slug: cleanSlug }, 
@@ -20,7 +21,9 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+
+// 4. Usamos la nueva función render() pasándole el post como argumento
+const { Content } = await render(post);
 ---
 
 <BlogPost {...post.data}>

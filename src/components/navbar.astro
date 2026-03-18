@@ -18,18 +18,18 @@ const isHome = currentPath === '/' || currentPath === `/${lang}` || currentPath 
 const basePath = lang === 'es' ? '/' : `/${lang}/`;
 ---
 
-<nav id="mainNav" class="fixed top-5 left-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center mix-blend-difference pointer-events-none transition-transform duration-300">
+<nav id="mainNav" class="fixed top-5 left-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center mix-blend-difference pointer-events-none transition-transform duration-300" aria-label="Main Navigation">
   
   <div class="flex items-center gap-6 md:gap-8 pointer-events-auto">
-    <a href={basePath} class="text-white font-syncopate text-xl md:text-2xl font-black uppercase tracking-tighter interactable transition-transform hover:scale-105">
+    <a href={basePath} class="text-white font-syncopate text-xl md:text-2xl font-black uppercase tracking-tighter interactable transition-transform hover:scale-105" aria-label="Go to homepage">
       JF_
     </a>
     
     <div class="flex items-center gap-4 md:gap-5">
-      <a href="https://github.com/JoanMengibarPrats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center">
+      <a href="https://github.com/JoanMengibarPrats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center" aria-label="GitHub Profile">
         <Github />
       </a>
-      <a href="https://linkedin.com/in/joanfrancescmengibarprats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center">
+      <a href="https://linkedin.com/in/joanfrancescmengibarprats" target="_blank" rel="noopener noreferrer" class="text-white w-6 h-6 md:w-8 md:h-8 interactable hover:text-green-400 transition-colors flex items-center justify-center" aria-label="LinkedIn Profile">
         <Linkedin />
       </a>
     </div>
@@ -37,7 +37,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
 
   <ul class="hidden lg:flex items-center gap-12 font-fira text-base font-bold text-white uppercase tracking-widest pointer-events-auto">
     <li>
-      <button class="openLangModalBtn relative group interactable transition-colors flex items-center pb-1 cursor-pointer">
+      <button class="openLangModalBtn relative group interactable transition-colors flex items-center pb-1 cursor-pointer" aria-label="Open language selection">
         <span class="opacity-0 group-hover:opacity-100 transition-opacity text-green-500 mr-2">></span>
         <div 
           class="w-8 h-8 bg-white group-hover:bg-green-400 transition-colors duration-300 transform group-hover:scale-110"
@@ -66,7 +66,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
     )}
   </ul>
 
-  <button id="openMobileMenuBtn" class="block lg:hidden pointer-events-auto interactable p-2 group">
+  <button id="openMobileMenuBtn" class="block lg:hidden pointer-events-auto interactable p-2 group" aria-expanded="false" aria-controls="mobileMenuOverlay" aria-label="Open mobile menu">
     <div 
       id="openIcon"
       class="w-8 h-8 bg-white group-hover:bg-green-400 transition-all duration-500 transform origin-center rotate-0 scale-100 opacity-100"
@@ -75,9 +75,9 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
   </button>
 </nav>
 
-<div id="mobileMenuOverlay" class="fixed inset-0 z-[100] bg-[#050505]/95 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500 flex flex-col justify-center items-center">
+<div id="mobileMenuOverlay" class="fixed inset-0 z-[100] bg-[#050505]/95 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500 flex flex-col justify-center items-center" aria-hidden="true">
   
-  <button id="closeMobileMenuBtn" class="absolute top-[52px] right-6 md:right-12 p-2 interactable group">
+  <button id="closeMobileMenuBtn" class="absolute top-[52px] right-6 md:right-12 p-2 interactable group" aria-label="Close mobile menu">
     <div 
       id="closeIcon"
       class="w-8 h-8 bg-zinc-500 group-hover:bg-green-400 transition-all duration-500 transform origin-center -rotate-90 scale-50 opacity-0"
@@ -104,7 +104,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       </>
     )}
     
-    <button class="openLangModalBtn mobile-nav-link text-zinc-400 hover:text-green-400 transition-colors flex items-center justify-center group p-2">
+    <button class="openLangModalBtn mobile-nav-link text-zinc-400 hover:text-green-400 transition-colors flex items-center justify-center group p-2" aria-label="Open language selection">
       <div 
         class="w-10 h-10 bg-zinc-400 group-hover:bg-green-400 transition-colors duration-300 transform group-hover:scale-110"
         style="-webkit-mask: url('/lenguage.svg') no-repeat center; mask: url('/lenguage.svg') no-repeat center; -webkit-mask-size: contain; mask-size: contain;"
@@ -113,28 +113,28 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
   </div>
 </div>
 
-<div id="langModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+<div id="langModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300" aria-hidden="true" role="dialog" aria-labelledby="langModalTitle">
   <div class="lang-modal-content relative bg-[#0a0a0a] border border-zinc-800 p-8 md:p-12 min-w-[300px] scale-95 transition-transform duration-300 flex flex-col items-center shadow-[0_0_40px_rgba(74,222,128,0.05)]">
-    <button id="closeLangModal" class="absolute top-4 right-5 text-zinc-500 hover:text-green-400 transition-colors font-fira text-xl font-bold uppercase tracking-widest interactable">[X]</button>
+    <button id="closeLangModal" class="absolute top-4 right-5 text-zinc-500 hover:text-green-400 transition-colors font-fira text-xl font-bold uppercase tracking-widest interactable" aria-label="Close language modal">[X]</button>
     
-    <h3 class="font-fira text-zinc-500 text-xs md:text-sm tracking-widest uppercase mb-8 border-b border-zinc-800 pb-2 w-full text-center select-none">
+    <h3 id="langModalTitle" class="font-fira text-zinc-500 text-xs md:text-sm tracking-widest uppercase mb-8 border-b border-zinc-800 pb-2 w-full text-center select-none">
       {t('nav.modalTitle')}
     </h3>
     
     <ul class="flex flex-col gap-6 w-full">
       <li>
         <a href={getTranslatedPath(Astro.url, 'es')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="es">
-          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>Español
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity" aria-hidden="true">></span>Español
         </a>
       </li>
       <li>
         <a href={getTranslatedPath(Astro.url, 'en')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="en">
-          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>English
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity" aria-hidden="true">></span>English
         </a>
       </li>
       <li>
         <a href={getTranslatedPath(Astro.url, 'va')} class="lang-option group flex items-center font-fira text-zinc-400 hover:text-green-400 transition-colors text-lg md:text-xl uppercase tracking-widest" data-lang="va">
-          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity">></span>Valencià
+          <span class="opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 text-green-500 mr-3 transition-opacity" aria-hidden="true">></span>Valencià
         </a>
       </li>
     </ul>
@@ -179,6 +179,9 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(mobileMenuOverlay && mobileMenuLinksContainer) {
         mobileMenuOverlay.classList.remove('opacity-0', 'pointer-events-none');
         mobileMenuOverlay.classList.add('opacity-100', 'pointer-events-auto');
+        mobileMenuOverlay.setAttribute('aria-hidden', 'false'); // Accesibilidad
+        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'true'); // Accesibilidad
+
         mobileMenuLinksContainer.classList.remove('translate-y-8');
         mobileMenuLinksContainer.classList.add('translate-y-0');
         document.body.style.overflow = 'hidden'; 
@@ -195,6 +198,9 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(mobileMenuOverlay && mobileMenuLinksContainer) {
         mobileMenuOverlay.classList.remove('opacity-100', 'pointer-events-auto');
         mobileMenuOverlay.classList.add('opacity-0', 'pointer-events-none');
+        mobileMenuOverlay.setAttribute('aria-hidden', 'true'); // Accesibilidad
+        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'false'); // Accesibilidad
+
         mobileMenuLinksContainer.classList.remove('translate-y-0');
         mobileMenuLinksContainer.classList.add('translate-y-8');
         document.body.style.overflow = ''; 
@@ -229,6 +235,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(langModal && modalContent) {
         langModal.classList.remove('opacity-0', 'pointer-events-none');
         langModal.classList.add('opacity-100', 'pointer-events-auto');
+        langModal.setAttribute('aria-hidden', 'false'); // Accesibilidad
         modalContent.classList.remove('scale-95');
         modalContent.classList.add('scale-100');
         document.body.style.overflow = 'hidden'; 
@@ -239,6 +246,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(langModal && modalContent) {
         langModal.classList.remove('opacity-100', 'pointer-events-auto');
         langModal.classList.add('opacity-0', 'pointer-events-none');
+        langModal.setAttribute('aria-hidden', 'true'); // Accesibilidad
         modalContent.classList.remove('scale-100');
         modalContent.classList.add('scale-95');
         if (!mobileMenuOverlay?.classList.contains('opacity-100')) document.body.style.overflow = ''; 

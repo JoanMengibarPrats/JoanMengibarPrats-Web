@@ -2,9 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
-// 1. Obtenemos los posts, filtramos los borradores y SOLO los que empiezan por "es/"
 const posts = (await getCollection('blog'))
-  .filter(post => !post.data.draft && post.slug.startsWith('es/'))
+  .filter(post => !post.data.draft && post.id.startsWith('es/'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
@@ -21,8 +20,7 @@ const posts = (await getCollection('blog'))
         </div>
       ) : (
         posts.map(post => {
-          // 2. Limpiamos el slug (quitamos el "es/") para que la URL sea /blog/mitm-iot
-          const cleanSlug = post.slug.replace('es/', '');
+          const cleanSlug = post.id.replace('es/', '');
           
           return (
             <article class="border border-zinc-800 bg-zinc-950 p-6 rounded hover:border-green-500 transition-colors duration-300 group">

@@ -1,18 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
-// IMPORTANTE: Importamos nuestro nuevo y flamante BlogPost
+// 1. IMPORTANTE: Añadimos 'render' a la importación
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 
-// 1. Generamos una página estática por cada post en español
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   
-  // Filtramos solo los de la carpeta "es/"
-  const spanishPosts = posts.filter(post => post.slug.startsWith('es/'));
+  // 2. Cambiamos 'post.slug' por 'post.id'
+  const spanishPosts = posts.filter(post => post.id.startsWith('es/'));
   
   return spanishPosts.map(post => {
-    // Le quitamos el "es/" al slug para que la URL sea limpia
-    const cleanSlug = post.slug.replace('es/', '');
+    // 3. Cambiamos 'post.slug' por 'post.id' aquí también
+    const cleanSlug = post.id.replace('es/', '');
     
     return {
       params: { slug: cleanSlug }, 
@@ -21,9 +20,10 @@ export async function getStaticPaths() {
   });
 }
 
-// 2. Extraemos el post correspondiente a la URL actual
 const { post } = Astro.props;
-const { Content } = await post.render();
+
+// 4. Usamos la nueva función render() pasándole el post como argumento
+const { Content } = await render(post);
 ---
 
 <BlogPost {...post.data}>

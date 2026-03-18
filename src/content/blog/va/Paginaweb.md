@@ -1,5 +1,5 @@
 ---
-title: "El arte de engañar dispositivos: MITM en IoT"
+title: "crear una pagina web"
 description: "Cómo interceptar tráfico en dispositivos del Internet de las Cosas sin levantar sospechas en la red local."
 pubDate: 2026-03-09
 tags: ["IoT", "Hacking", "MITM", "Redes"]

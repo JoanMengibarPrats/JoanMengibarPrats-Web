@@ -2,9 +2,8 @@
 import Layout from '../../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
-// 1. Filtramos para que SOLO coja los posts de la carpeta "en/"
 const posts = (await getCollection('blog'))
-  .filter(post => !post.data.draft && post.slug.startsWith('en/'))
+  .filter(post => !post.data.draft && post.id.startsWith('en/'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
@@ -21,12 +20,10 @@ const posts = (await getCollection('blog'))
         </div>
       ) : (
         posts.map(post => {
-          // 2. Limpiamos el slug quitando el "en/"
-          const cleanSlug = post.slug.replace('en/', '');
+          const cleanSlug = post.id.replace('en/', '');
           
           return (
             <article class="border border-zinc-800 bg-zinc-950 p-6 rounded hover:border-green-500 transition-colors duration-300 group">
-              {/* 3. Pasamos el cleanSlug a la URL */}
               <a href={`/en/blog/${cleanSlug}`} class="block">
                 <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-2">
                   <h2 class="text-2xl font-bold text-gray-200 group-hover:text-green-400 transition-colors">

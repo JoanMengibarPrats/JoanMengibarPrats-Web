@@ -1,17 +1,18 @@
 ---
 import '../styles/global.css';
 import Navbar from '../components/navbar.astro';
-
-// 1. Importamos nuestra herramienta para saber el idioma de la URL
 import { getLangFromUrl } from '../i18n/utils';
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = "Joan Francesc Mengibar Prats" } = Astro.props;
+const { 
+  title = "Joan Francesc Mengibar Prats",
+  description = "Portfolio y blog personal sobre ciberseguridad, IoT y hardware hacking."
+} = Astro.props;
 
-// 2. Extraemos el idioma actual
 const lang = getLangFromUrl(Astro.url);
 ---
 
@@ -19,8 +20,12 @@ const lang = getLangFromUrl(Astro.url);
 <html lang={lang} class="scroll-smooth overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

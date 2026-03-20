@@ -2,6 +2,7 @@
 // src/components/about/About.astro
 
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { Image } from 'astro:assets'; // <-- IMPORTACIÓN AÑADIDA
 
 // 1. Preparamos el traductor para el texto normal
 const lang = getLangFromUrl(Astro.url);
@@ -44,9 +45,14 @@ const splitIntoHackerLetters = (text: string) => {
     {/* COLUMNA IZQUIERDA: IMAGEN RECTANGULAR */}
     <div class="w-full">
       <div class="relative overflow-hidden border border-zinc-800 group interactable">
-        <img 
+        {/* MODIFICADO: Uso del componente Image nativo de Astro */}
+        <Image 
           src={aboutImage} 
-          alt="Joan Francesc - About Image" 
+          alt="Joan Francesc" 
+          width={1000}
+          height={750}
+          loading="lazy"
+          decoding="async"
           class="w-full h-auto object-cover aspect-[4/3] md:aspect-video grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-105"
         />
         <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-500"></div>

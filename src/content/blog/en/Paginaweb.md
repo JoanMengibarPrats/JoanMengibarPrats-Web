@@ -17,9 +17,9 @@ Es sorprendentemente común encontrar cámaras IP baratas que envían sus creden
 ### 1.2 Actualizaciones por aire (OTA) inseguras
 Otro vector crítico son las actualizaciones de firmware. Si el dispositivo descarga el nuevo firmware desde un servidor HTTP sin validar firmas criptográficas, un ataque MITM podría inyectar código malicioso directamente en el núcleo del dispositivo.
 
-## 2. Preparando el entorno de auditoría
+## 2. Diseño Web
 
-Para realizar nuestro análisis de tráfico, no necesitamos hardware costoso. Una simple Raspberry Pi o tu propio ordenador portátil conectado a la red local será suficiente.
+Personalmente esta ha sido mi parte favorita, en el sigiente [enlace](https://www.awwwards.com/websites/gsap/) tienes una recopilación de páginas web con gsap. En esa página están los mejores programadores, ahí la gente está loca, en esta me encontré con la página web de [WHITEOUT_WORKS](https://www.whiteoutworks.com/), en el momento que la vi me imaginé mi página web al momento, esto para gente amateur en diseño es una maravilla.
 
 > **Advertencia ética:** Las técnicas descritas a continuación solo deben utilizarse en dispositivos de tu propiedad o en redes donde tengas autorización explícita para realizar auditorías de seguridad.
 

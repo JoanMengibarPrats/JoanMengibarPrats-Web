@@ -1,20 +1,14 @@
 ---
-// src/components/navbar.astro
 import Github from '../icons/GitHub.astro';
 import Linkedin from '../icons/LinkedIn.astro';
-
-// 1. Importamos nuestras utilidades de idiomas (¡Añadimos getTranslatedPath!)
 import { getLangFromUrl, useTranslations, getTranslatedPath } from '../i18n/utils';
 
-// 2. Obtenemos el idioma actual y preparamos el traductor
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-// 3. Detectamos si estamos en la página principal (Home)
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/' || currentPath === `/${lang}` || currentPath === `/${lang}/`;
 
-// 4. Calculamos la ruta base respetando el idioma para volver desde el blog
 const basePath = lang === 'es' ? '/' : `/${lang}/`;
 ---
 
@@ -144,7 +138,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 4.1 LÓGICA DEL SCROLLSPY ---
+    // --- SCROLLSPY ---
     const sections = document.querySelectorAll('section[id]');
     if (sections.length > 0) {
       const navLinks = document.querySelectorAll('.nav-link');
@@ -165,7 +159,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       sections.forEach(section => observer.observe(section));
     }
 
-    // --- 4.2 LÓGICA DEL MENÚ MÓVIL CON ANIMACIÓN DE ICONOS ---
+    // --- MOBILE MENU ---
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     const mobileMenuLinksContainer = document.getElementById('mobileMenuLinks');
     const openMobileMenuBtn = document.getElementById('openMobileMenuBtn');
@@ -179,8 +173,8 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(mobileMenuOverlay && mobileMenuLinksContainer) {
         mobileMenuOverlay.classList.remove('opacity-0', 'pointer-events-none');
         mobileMenuOverlay.classList.add('opacity-100', 'pointer-events-auto');
-        mobileMenuOverlay.setAttribute('aria-hidden', 'false'); // Accesibilidad
-        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'true'); // Accesibilidad
+        mobileMenuOverlay.setAttribute('aria-hidden', 'false');
+        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'true');
 
         mobileMenuLinksContainer.classList.remove('translate-y-8');
         mobileMenuLinksContainer.classList.add('translate-y-0');
@@ -198,8 +192,8 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(mobileMenuOverlay && mobileMenuLinksContainer) {
         mobileMenuOverlay.classList.remove('opacity-100', 'pointer-events-auto');
         mobileMenuOverlay.classList.add('opacity-0', 'pointer-events-none');
-        mobileMenuOverlay.setAttribute('aria-hidden', 'true'); // Accesibilidad
-        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'false'); // Accesibilidad
+        mobileMenuOverlay.setAttribute('aria-hidden', 'true');
+        if(openMobileMenuBtn) openMobileMenuBtn.setAttribute('aria-expanded', 'false');
 
         mobileMenuLinksContainer.classList.remove('translate-y-0');
         mobileMenuLinksContainer.classList.add('translate-y-8');
@@ -217,7 +211,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
     if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
     mobileNavLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
 
-    // --- 4.3 LÓGICA DEL MODAL DE IDIOMAS ---
+    // --- LANGUAGE MODAL ---
     const langModal = document.getElementById('langModal');
     const modalContent = langModal?.querySelector('.lang-modal-content');
     const closeLangBtn = document.getElementById('closeLangModal');
@@ -235,7 +229,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(langModal && modalContent) {
         langModal.classList.remove('opacity-0', 'pointer-events-none');
         langModal.classList.add('opacity-100', 'pointer-events-auto');
-        langModal.setAttribute('aria-hidden', 'false'); // Accesibilidad
+        langModal.setAttribute('aria-hidden', 'false');
         modalContent.classList.remove('scale-95');
         modalContent.classList.add('scale-100');
         document.body.style.overflow = 'hidden'; 
@@ -246,7 +240,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       if(langModal && modalContent) {
         langModal.classList.remove('opacity-100', 'pointer-events-auto');
         langModal.classList.add('opacity-0', 'pointer-events-none');
-        langModal.setAttribute('aria-hidden', 'true'); // Accesibilidad
+        langModal.setAttribute('aria-hidden', 'true');
         modalContent.classList.remove('scale-100');
         modalContent.classList.add('scale-95');
         if (!mobileMenuOverlay?.classList.contains('opacity-100')) document.body.style.overflow = ''; 
@@ -275,7 +269,7 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       });
     });
 
-    // --- 4.4 LÓGICA DE OCULTAR NAVBAR EN MÓVIL AL HACER SCROLL ---
+    // --- AUTO-HIDE NAVBAR ON SCROLL (MOBILE) ---
     const mainNav = document.getElementById('mainNav');
     let lastScrollY = window.scrollY;
 

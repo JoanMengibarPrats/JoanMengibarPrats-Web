@@ -38,12 +38,19 @@ export const ui = {
     'maya.btn.throw': 'Lanzar_Pelota',
     'maya.btn.treat': 'Dar_Premio',
     'maya.btn.talk': 'Hablar',
-    // Textos del JS
+    // Textos del JS (Hablar)
     'maya.dialog.1': '¿Quieres un...',
     'maya.dialog.2': '¡¿Premio?!',
     'maya.dialog.3': '¿Quieres ir al...',
     'maya.dialog.4': '¡¿Parque?!',
     'maya.dialog.5': '¡GUAU!',
+    // Textos del JS (Premio)
+    'maya.treat.1': '¿Quieres un premio?',
+    'maya.treat.2': 'Guau',
+    'maya.treat.3': 'sienta',
+    'maya.treat.4': 'tumba',
+    'maya.treat.5': 'vuelta',
+    'maya.treat.6': 'muy bien',
   },
   en: {
     // --- NAVBAR ---
@@ -73,12 +80,19 @@ export const ui = {
     'maya.btn.throw': 'Throw_Ball',
     'maya.btn.treat': 'Give_Treat',
     'maya.btn.talk': 'Talk',
-    // Textos del JS
+    // Textos del JS (Hablar)
     'maya.dialog.1': 'Do you want a...',
     'maya.dialog.2': 'Treat?!',
     'maya.dialog.3': 'Do you want to go to the...',
     'maya.dialog.4': 'Park?!',
     'maya.dialog.5': 'WOOF!',
+    // Textos del JS (Premio)
+    'maya.treat.1': 'Do you want a treat?',
+    'maya.treat.2': 'Woof',
+    'maya.treat.3': 'sit',
+    'maya.treat.4': 'down',
+    'maya.treat.5': 'roll over',
+    'maya.treat.6': 'very good',
   },
   va: {
     // --- NAVBAR ---
@@ -109,11 +123,18 @@ export const ui = {
     'maya.btn.throw': 'lançar_Pilota',
     'maya.btn.treat': 'Donar_Premi',
     'maya.btn.talk': 'Parlar',
-    // Textos del JS
+    // Textos del JS (Hablar)
     'maya.dialog.1': 'Vols un...',
     'maya.dialog.2': 'Premi?!',
     'maya.dialog.3': 'Vols anar al...',
     'maya.dialog.4': 'Parc?!',
     'maya.dialog.5': 'BAUP!',
+    // Textos del JS (Premio)
+    'maya.treat.1': 'Vols un premi?',
+    'maya.treat.2': 'Baup',
+    'maya.treat.3': 'seu',
+    'maya.treat.4': 'terra',
+    'maya.treat.5': 'volta',
+    'maya.treat.6': 'molt bé',
   },
 } as const;

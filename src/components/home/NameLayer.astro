@@ -1,24 +1,12 @@
 ---
-// src/components/home/NameLayer.astro
-
-// 1. Importamos nuestras utilidades de idiomas
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
 
-// 2. Obtenemos el idioma actual y preparamos el traductor
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
-  <section class="absolute inset-0 flex flex-col items-start z-10 bg-black overflow-hidden
-  pl-6 md:pl-16 pr-4
-  portrait:justify-center 
-  landscape:justify-end landscape:pb-[15vh] md:landscape:pb-16
-  lg:justify-end lg:pb-16">
+<section class="absolute inset-0 flex flex-col items-start z-10 bg-black overflow-hidden pl-6 md:pl-16 pr-4 portrait:justify-center landscape:justify-end landscape:pb-[15vh] md:landscape:pb-16 lg:justify-end lg:pb-16">
   
-<h1 class="text-white leading-none text-left select-none tracking-tighter uppercase font-syncopate w-full max-w-[100vw]
-    /* Reducimos el tamaño en móviles (de 13dvw a 11dvw) para evitar el salto de línea */
-    text-[11.5dvw] sm:text-[11dvw] md:text-[9dvw] lg:text-[10dvw]
-    landscape:text-[clamp(2rem,14dvh,6rem)] 
-    lg:landscape:text-[10dvw] xl:text-[10.5dvw]">
+  <h1 class="text-white leading-none text-left select-none tracking-tighter uppercase font-syncopate w-full max-w-[100vw] text-[11.5dvw] sm:text-[11dvw] md:text-[9dvw] lg:text-[10dvw] landscape:text-[clamp(2rem,14dvh,6rem)] lg:landscape:text-[10dvw] xl:text-[10.5dvw]">
     
     <span class="flex flex-wrap max-w-full">
       <span class="hacker-letter transition-colors duration-100" data-original="J">J</span>
@@ -68,7 +56,6 @@ const t = useTranslations(lang);
 </section>
 
 <script>
-  // ... (Tu script del efecto hacker se queda exactamente igual)
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+<>{}[]";
   const letters = document.querySelectorAll('.hacker-letter');
 
@@ -101,7 +88,7 @@ const t = useTranslations(lang);
 
     el.classList.add('text-green-500');
 
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       el.innerText = chars[Math.floor(Math.random() * chars.length)];
       iterations++;
 

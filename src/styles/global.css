@@ -14,3 +14,14 @@
 @theme {
   --font-syncopate: 'Syncopate Local', sans-serif;
 }
+
+/* 3. Personalizamos el color de selección de texto (Verde Hacker) */
+::selection {
+  background-color: #22c55e; /* El verde de text-green-500 */
+  color: #000000;            /* Texto en negro para contraste */
+}
+
+::-moz-selection {
+  background-color: #22c55e;
+  color: #000000;
+}

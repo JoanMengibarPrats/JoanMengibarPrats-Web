@@ -59,16 +59,39 @@ Navegando por ahí me encontré con la página web de [WHITEOUT_WORKS](https://w
 ![Página web de WHITEOUT_WORKS](./WHITEOUT_WORKS.webp)
 
 ### 2.1 Divide y vencerás
-La inteligencia artificial es muy perezosa, si le dás una misión genérica recibirás un resultado muy cutre, pero si le das un promt muy concreto puede hacer maravillas. Por eso, creé la siguiente estratégia: En astro se separan las partes de la página web en componentes, pues la idea es dividir estos en subcomponentes que cumplan un objetivo sólo a menos que no sea posible.
+La inteligencia artificial es muy perezosa: si le das una misión genérica recibirás un resultado muy cutre, pero si le das un prompt muy concreto puede hacer maravillas. Por eso, creé la siguiente estrategia: en Astro se separan las partes de la página web en componentes; pues la idea es dividir estos en subcomponentes que cumplan un objetivo solo, a menos que no sea posible.
 
-Podemos hacerlo fácilmente con herramientas como `arpspoof` o `bettercap`. En una terminal, ejecutaríamos algo similar a esto:
+Por ejemplo, en el componente blog de la página principal, he separado la lógica de la animación de la lava con la de la lista del blog. ¿Por qué? La animación de la lava nunca más la voy a modificar; si sigo escalando el código, a la hora de hacer copia y pega en la IA puede modificar alguna parte que no quieras, ya que son muy comunes las alucinaciones en códigos grandes.
 
-```bash
-# Habilitar el reenvío de IP para no dejar sin internet al dispositivo
-echo 1 > /proc/sys/net/ipv4/ip_forward
+```text
+📁 src/
+├── 📁 components/
+│   ├── 📁 blog/
+│   │   ├── 📄 FeaturedBlogs.astro
+│   │   └── 📄 LavaLampBackground.astro
+```
 
-# Engañar al dispositivo (Target IP)
-arpspoof -i eth0 -t 192.168.1.50 192.168.1.1
+![Ejemplo](./EjemploBlog.webp)
 
-# Engañar al router (Gateway IP)
-arpspoof -i eth0 -t 192.168.1.1 192.168.1.50
+### Un toque personal
+
+Siempre me han fascinado las animaciones pixel art de los juegos antiguos, por eso me decidí a crear una para mi página web; así es como nació el componente "SamoyedGame.astro". Este consiste en una animación pixel art de mi perra. ¿Cómo la he hecho? Primero necesitas unas imágenes reales para crear los bocetos pixel art; una vez los tienes, generas un vídeo de la perra realizando la acción (en mi caso generé 3). Luego divides ese vídeo en frames y mediante Nano Banana creas los frames pixel art; una vez los tienes, los juntas en piskel.com para crear el spritesheet.
+
+![SamoyedGame](./SamoyedGame.webp)
+
+
+## 3. Optimización
+
+La métrica que he utilizado para medir el rendimiento de la página web es el Lighthouse de Chrome; esta te da una puntuación sobre 100 de la "Performance", "Accessibility", "Best Practices" y "SEO". Mi objetivo era una puntuación mayor a 90 en la "Performance"; antes de ponerme a optimizar la página web, esta era la puntuación:
+
+![Lighthouse](./Lighthouse.webp)
+
+Una vez ya tienes el código acabado, es tan simple como revisarlo con IA con un prompt de optimización.
+
+## 4. Conclusión
+
+El vibe coding está muy bien para proyectos personales que no requieren una programación muy seria; sin embargo, a día de hoy, está muy lejos de sustituir a un programador. La cantidad de alucinaciones que tiene la inteligencia artificial es increíble, pero lo peor es que están diseñadas para disimularlas: te mienten en la cara. Al fin y al cabo estamos viviendo una carrera de empresas por dominar un nuevo sector, por lo que "todo vale" con tal de conseguir clientes, que a su vez entreguen datos para entrenar el siguiente modelo.
+
+Si esto fuera un proyecto más grande, se me haría imposible de mantener simplemente con IA sin unos conocimientos de arquitectura web. Esto como tal no es muy grave, pero he leído que muchas empresas están utilizando IA para realizar auditorías de seguridad; espero que las estén utilizando como herramientas junto con un experto formado, de lo contrario, las alucinaciones que he vivido programando esto en un entorno crítico podrían ser fatales.
+
+[GitHub de la página web](https://github.com/JoanMengibarPrats/JoanMengibarPrats-Web)

@@ -1,11 +1,7 @@
 ---
-// src/components/blog/FeaturedBlogs.astro
-
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
-// 1. Importamos el componente Image
 import { Image } from 'astro:assets';
-// 2. Importamos la imagen local (esto permite que Astro la procese)
-import jfImage from '../../../public/images/JF_.webp'; 
+import firmware from '../../../public/images/Firmware_extraction.webp'; 
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -16,8 +12,8 @@ const mockBlogs = [
     title: t('blog.1.title'), 
     category: t('blog.1.category'), 
     description: t('blog.1.desc'),
-    url: `${basePath}/blog/paginaweb`,
-    image: jfImage 
+    url: `${basePath}/blog/firmware_extraction`,
+    image: firmware 
   }
 ];
 ---
@@ -69,12 +65,11 @@ const mockBlogs = [
 <div 
   id="global-hover-image" 
   class="hidden md:block pointer-events-none fixed top-0 left-0 z-[100] opacity-0 scale-90 transition-all duration-500 ease-out overflow-hidden shadow-2xl w-[45vw] md:w-[35vw] xl:w-[28vw]"
-  style={`aspect-ratio: ${jfImage.width} / ${jfImage.height};`}
+  style={`aspect-ratio: ${firmware.width} / ${firmware.height};`}
 >
    {mockBlogs.map((blog, index) => (
-      // 4. Cambiamos <img> por <Image />
-      <Image 
-        src={blog.image} 
+       <Image 
+         src={blog.image} 
         alt={blog.title} 
         data-image-index={index} 
         width={800}
@@ -95,7 +90,6 @@ const mockBlogs = [
   if (listContainer && blogItems.length > 0) {
     
     if (hasHover && globalContainer && globalImages) {
-      // --- LÓGICA PARA ORDENADORES (GSAP + Hover) ---
       let imageWidth = 0;
       let imageHeight = 0;
 
@@ -141,10 +135,7 @@ const mockBlogs = [
       });
 
     } else {
-      // --- LÓGICA PARA MÓVILES (Efecto "Lava" con Scroll) ---
       
-      // Configuramos la zona de "Lava": un margen negativo superior e inferior del 40%.
-      // Esto deja solo una franja del 20% en el centro de la pantalla.
       const observerOptions = {
         root: null,
         rootMargin: '-40% 0px -40% 0px',
@@ -154,10 +145,8 @@ const mockBlogs = [
       const lavaObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            // Cuando entra en la zona de lava, le añadimos la clase
             entry.target.classList.add('is-active');
           } else {
-            // Cuando sale, se la quitamos
             entry.target.classList.remove('is-active');
           }
         });

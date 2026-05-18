@@ -138,7 +138,6 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     
-    // --- SCROLLSPY ---
     const sections = document.querySelectorAll('section[id]');
     if (sections.length > 0) {
       const navLinks = document.querySelectorAll('.nav-link');
@@ -159,7 +158,6 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       sections.forEach(section => observer.observe(section));
     }
 
-    // --- MOBILE MENU ---
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     const mobileMenuLinksContainer = document.getElementById('mobileMenuLinks');
     const openMobileMenuBtn = document.getElementById('openMobileMenuBtn');
@@ -211,7 +209,6 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
     if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
     mobileNavLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
 
-    // --- LANGUAGE MODAL ---
     const langModal = document.getElementById('langModal');
     const modalContent = langModal?.querySelector('.lang-modal-content');
     const closeLangBtn = document.getElementById('closeLangModal');
@@ -269,7 +266,6 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
       });
     });
 
-    // --- AUTO-HIDE NAVBAR ON SCROLL (MOBILE) ---
     const mainNav = document.getElementById('mainNav');
     let lastScrollY = window.scrollY;
 

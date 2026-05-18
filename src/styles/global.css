@@ -1,7 +1,14 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* 1. Cargamos el archivo físico desde tu carpeta public */
+@font-face {
+  font-family: 'Syncopate Local';
+  src: url('/fonts/Syncopate-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Syncopate Local';
   src: url('/fonts/Syncopate-Bold.ttf') format('truetype');
@@ -10,15 +17,13 @@
   font-display: swap;
 }
 
-/* 2. Le decimos a Tailwind que use nuestra fuente local */
 @theme {
   --font-syncopate: 'Syncopate Local', sans-serif;
 }
 
-/* 3. Personalizamos el color de selección de texto (Verde Hacker) */
 ::selection {
-  background-color: #22c55e; /* El verde de text-green-500 */
-  color: #000000;            /* Texto en negro para contraste */
+  background-color: #22c55e;
+  color: #000000;
 }
 
 ::-moz-selection {

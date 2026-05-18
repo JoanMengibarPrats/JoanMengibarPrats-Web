@@ -1,13 +1,12 @@
 ---
-// 1. IMPORTANTE: Añadimos 'render' a la importación
 import { getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  const spanishPosts = posts.filter(post => post.id.startsWith('va/'));
+  const valencianPosts = posts.filter(post => post.id.startsWith('va/'));
   
-  return spanishPosts.map(post => {
+  return valencianPosts.map(post => {
     const cleanSlug = post.id.replace('va/', '');
     
     return {

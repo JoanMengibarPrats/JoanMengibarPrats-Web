@@ -5,7 +5,6 @@ import { getLangFromUrl, useTranslations } from '../../i18n/utils';
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-// --- RAW SNIPPETS ---
 const rawSnippets = [
   `void check_auth() {
   if (ptrace(PTRACE_TRACEME, 0, 1, 0) < 0) {
@@ -77,7 +76,6 @@ const baseBlocks = Array.from({ length: 40 }).map(() => {
   };
 });
 
-// --- BINARY BACKGROUND ---
 const binaryContent = Array.from({ length: 100 }).map(() => 
   Array.from({ length: 150 }).map(() => Math.round(Math.random())).join(' ')
 ).join('\n');

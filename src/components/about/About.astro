@@ -1,14 +1,10 @@
 ---
-// src/components/about/About.astro
-
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
-import { Image } from 'astro:assets'; // <-- IMPORTACIÓN AÑADIDA
+import { Image } from 'astro:assets';
 
-// 1. Preparamos el traductor para el texto normal
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-// 2. Mantenemos las skills fijas (términos estándar del sector)
 const skills = [
   "Cybersecurity Engineer Student",
   "IoT Pentester",
@@ -18,7 +14,6 @@ const skills = [
 
 const aboutImage = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop";
 
-// Función MEJORADA: Agrupa letras en palabras para que nunca se partan por la mitad
 const splitIntoHackerLetters = (text: string) => {
   return text.split(' ').map(word => {
     const lettersSpans = word.split('').map(char => {
@@ -31,21 +26,16 @@ const splitIntoHackerLetters = (text: string) => {
 
 <section id="about" class="w-full min-h-screen bg-black relative px-6 md:px-12 lg:px-20 pb-24 flex flex-col overflow-hidden">
 
-  {/* 1. TEXTO 'ABOUT' GIGANTE */}
   <div class="w-full flex justify-center pt-20 lg:pt-28 z-0 pointer-events-none select-none">
-    {/* Tamaños reducidos para que 'ABOUT' (5 letras) nunca supere el ancho de la pantalla */}
     <h2 class="text-[#131313] font-syncopate font-bold text-[22vw] sm:text-[20vw] md:text-[15vw] leading-none uppercase tracking-tighter">
       About
     </h2>
   </div>
 
-  {/* 2. CONTENEDOR IMAGEN Y TEXTO */}
   <div class="relative z-10 w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mt-20 lg:mt-5">
     
-    {/* COLUMNA IZQUIERDA: IMAGEN RECTANGULAR */}
     <div class="w-full">
       <div class="relative overflow-hidden border border-zinc-800 group interactable">
-        {/* MODIFICADO: Uso del componente Image nativo de Astro */}
         <Image 
           src={aboutImage} 
           alt="Joan Francesc" 
@@ -59,7 +49,6 @@ const splitIntoHackerLetters = (text: string) => {
       </div>
     </div>
 
-    {/* COLUMNA DERECHA: TEXTO DE PRESENTACIÓN */}
     <div class="w-full flex lg:justify-end">
       <div class="font-fira text-sm md:text-base text-gray-300 leading-relaxed tracking-wider interactable relative z-20 md:max-w-lg lg:max-w-none">
         <p class="mb-6">
@@ -70,7 +59,7 @@ const splitIntoHackerLetters = (text: string) => {
         </p>
         
         <div class="mt-8 md:mt-12">
-          <a href="mailto:tuemail@ejemplo.com" class="inline-flex items-center gap-2 text-white uppercase font-syncopate tracking-widest text-xs group hover:text-green-400 transition-colors">
+          <a href="mailto:joanmengibarprats@proton.me" class="inline-flex items-center gap-2 text-white uppercase font-syncopate tracking-widest text-xs group hover:text-green-400 transition-colors">
             {t('about.contact')}
             <span class="text-green-500 group-hover:translate-x-2 transition-transform duration-300">-></span>
           </a>
@@ -80,7 +69,6 @@ const splitIntoHackerLetters = (text: string) => {
 
   </div>
 
-  {/* 3. LISTA DE ROLES GIGANTE (CON EFECTO HACKER) */}
   <div class="w-full flex flex-col items-center justify-center gap-6 md:gap-8 relative z-10 select-none overflow-hidden mt-24 lg:mt-32 px-2 md:px-4">
     {skills.map((skill) => (
       <h3 

@@ -8,6 +8,7 @@ const t = useTranslations(lang);
 
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/' || currentPath === `/${lang}` || currentPath === `/${lang}/`;
+const isBlogPost = currentPath.includes('/blog/');
 
 const basePath = lang === 'es' ? '/' : `/${lang}/`;
 ---
@@ -30,6 +31,15 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
   </div>
 
   <ul class="hidden lg:flex items-center gap-12 font-fira text-base font-bold text-white uppercase tracking-widest pointer-events-auto">
+    {!isHome && isBlogPost && (
+      <li>
+        <a href={`${basePath}blog`} class="relative group interactable hover:text-green-400 transition-colors flex items-center pb-1">
+          <span class="opacity-0 group-hover:opacity-100 transition-opacity text-green-500 mr-1">></span>
+          {t('nav.allArticles')}
+          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100"></span>
+        </a>
+      </li>
+    )}
     <li>
       <button class="openLangModalBtn relative group interactable transition-colors flex items-center pb-1 cursor-pointer" aria-label="Open language selection">
         <span class="opacity-0 group-hover:opacity-100 transition-opacity text-green-500 mr-2">></span>
@@ -92,6 +102,18 @@ const basePath = lang === 'es' ? '/' : `/${lang}/`;
           <span class="absolute -left-6 opacity-0 group-hover:opacity-100 group-[.active]:opacity-100 transition-opacity text-green-500">></span>
           {t('nav.about')}
           <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100 group-[.active]:scale-x-100 group-[.active]:origin-left"></span>
+        </a>
+        
+        <div class="w-[80%] h-[1px] bg-zinc-800 my-2"></div> 
+      </>
+    )}
+    
+    {!isHome && isBlogPost && (
+      <>
+        <a href={`${basePath}blog`} class="relative group interactable hover:text-green-400 transition-colors flex items-center pb-2">
+          <span class="absolute -left-6 opacity-0 group-hover:opacity-100 transition-opacity text-green-500">></span>
+          {t('nav.allArticles')}
+          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-green-400 origin-right scale-x-0 transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100"></span>
         </a>
         
         <div class="w-[80%] h-[1px] bg-zinc-800 my-2"></div> 

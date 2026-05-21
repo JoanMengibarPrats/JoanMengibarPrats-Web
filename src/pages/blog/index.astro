@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog'))
-  .filter(post => !post.data.draft && post.id.startsWith('es/'))
+  .filter(post => !post.data.draft && post.id.endsWith('/es'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
@@ -20,7 +20,7 @@ const posts = (await getCollection('blog'))
         </div>
       ) : (
         posts.map(post => {
-          const cleanSlug = post.id.replace('es/', '');
+          const cleanSlug = post.id.replace('/es', '');
           
           return (
             <article class="border border-zinc-800 bg-zinc-950 p-6 rounded hover:border-green-500 transition-colors duration-300 group">

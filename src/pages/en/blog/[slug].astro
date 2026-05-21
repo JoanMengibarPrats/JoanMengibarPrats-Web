@@ -5,10 +5,10 @@ import BlogPost from '../../../layouts/BlogPost.astro';
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   
-  const englishPosts = posts.filter(post => post.id.startsWith('en/'));
+  const englishPosts = posts.filter(post => post.id.endsWith('/en'));
   
   return englishPosts.map(post => {
-    const cleanSlug = post.id.replace('en/', '');
+    const cleanSlug = post.id.replace('/en', '');
     
     return {
       params: { slug: cleanSlug }, 

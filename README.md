@@ -1,113 +1,113 @@
-Hey! this is my webpage  
+Hey! This is my personal portfolio and blog.
 
 ---
 
-## Markdown Datasheet  
+## Markdown Datasheet
 
-### Crear un nuevo post  
+### Creating a new post
 
-Los posts viven en `src/content/blog/{idioma}/{slug}/index.md`.  
-Las imágenes del post van en la misma carpeta.  
+Posts live in `src/content/blog/{slug}/{lang}.md`.  
+Images live alongside the markdown files — one copy shared across all languages.
 
-Estructura:  
+Structure:
 ```
 src/content/blog/
-├── es/
-│   └── mi-post/
-│       ├── index.md
-│       ├── foto1.webp
-│       └── foto2.webp
-├── en/
-│   └── mi-post/
-│       └── index.md
-└── va/
-    └── mi-post/
-        └── index.md
+├── firmware_extraction/
+│   ├── es.md           ← Spanish
+│   ├── en.md           ← English
+│   ├── va.md           ← Valencian
+│   ├── foto1.webp      ← Shared across all translations
+│   └── foto2.webp
+└── another-post/
+    ├── va.md
+    └── image.webp
 ```
 
-El slug (nombre de carpeta) define la URL final:  
-`/blog/mi-post` · `/en/blog/mi-post` · `/va/blog/mi-post`  
+The slug (folder name) defines the final URL:  
+`/blog/firmware_extraction` · `/en/blog/firmware_extraction` · `/va/blog/firmware_extraction`
+
+Images are shared — no need to duplicate them per language.
 
 ---
 
-### Frontmatter  
+### Frontmatter
 
 ```yaml
 ---
-title: "Titulo del post"
-description: "Descripcion corta para SEO y previews"
+title: "Post title"
+description: "Short description for SEO and previews"
 pubDate: 2026-05-18
 tags: ["Hardware Hacking", "IoT", "Firmware"]
 draft: false
 ---
 ```
 
-| Campo | Obligatorio | Tipo | Notas |
-|-------|:-----------:|------|-------|
-| `title` | SI | string | Titulo del post |
-| `description` | SI | string | Aparece en listings, OG tags y SEO |
-| `pubDate` | SI | date | `YYYY-MM-DD`. Se ordena por fecha descendente |
-| `tags` | NO | string[] | Se muestran como `#tag` en verde en la cabecera |
-| `draft` | NO | boolean | `true` lo oculta del listado (default: `false`) |
+| Field | Required | Type | Notes |
+|-------|:--------:|------|-------|
+| `title` | YES | string | Post title |
+| `description` | YES | string | Shown in listings, OG tags and SEO |
+| `pubDate` | YES | date | `YYYY-MM-DD`. Sorted descending by date |
+| `tags` | NO | string[] | Displayed as `#tag` in green on the header |
+| `draft` | NO | boolean | `true` hides it from listings (default: `false`) |
 
 ---
 
-### Elementos Markdown y como se renderizan  
+### Markdown elements and how they render
 
-Todos los estilos se aplican dentro del contenedor `.minimal-prose`.  
-Fuente base: **Fira Code** (mono). Verde acento: `#22c55e`.  
+All styles are applied inside the `.minimal-prose` container.  
+Base font: **Fira Code** (mono). Accent green: `#22c55e`.
 
 ```markdown
 ## Heading 2
 ### Heading 3
 ```
 
-| Elemento | Renderizado |
-|----------|------------|
-| `## h2` | Syncopate bold, blanco, uppercase, margen superior 5rem. Aparece en el TOC lateral |
-| `### h3` | Blanco, 1.25rem, margen 3.5rem. Aparece en el TOC lateral con indentado |
-| `**bold**` | Blanco `#f4f4f5`, peso 700 |
-| `inline code` | Verde `#4ade80`, 0.85em |
-| `[link](url)` | Borde inferior verde, color zinc-200. Hover verde. Links externos → `target="_blank"` |
-| `> blockquote` | Borde izquierdo verde 1px, texto italic zinc-500 |
-| `- list item` | Sin bullet nativo, usa em-dash `—` verde como marcador |
-| `1. ordered` | Numeros `decimal-leading-zero` con marcador verde Syncopate |
+| Element | Rendered as |
+|---------|-------------|
+| `## h2` | Syncopate bold, white, uppercase, 5rem top margin. Appears in the TOC sidebar |
+| `### h3` | White, 1.25rem, 3.5rem margin. Appears in the TOC sidebar indented |
+| `**bold**` | White `#f4f4f5`, weight 700 |
+| `` `inline code` `` | Green `#4ade80`, 0.85em |
+| `[link](url)` | Green bottom border, zinc-200 text. Hover turns green. External links → `target="_blank"` |
+| `> blockquote` | Green left border 1px, italic zinc-500 text |
+| `- list item` | No native bullet, uses green em-dash `—` as marker |
+| `1. ordered` | `decimal-leading-zero` with green Syncopate marker |
 
-**Bloques de codigo:**  
+**Code blocks:**
 ````markdown
 ```python
-print("hola")
+print("hello")
 ```
-````  
-→ Fondo transparente, borde `#27272a`, padding 1.5rem, texto `#d1d5db`.  
+````
+→ Transparent background, `#27272a` border, 1.5rem padding, `#d1d5db` text.
 
-**Imagenes:**  
+**Images:**
 ```markdown
-![alt](./foto.webp)
-```  
-→ Ancho completo, margin 3rem. Escala de grises por defecto, color al hacer hover.  
-Usa WebP siempre que puedas. Las imagenes en la carpeta del post las optimiza Astro automaticamente.  
+![alt text](foto.webp)
+```
+→ Full width, 3rem margin. Grayscale by default, colour on hover.  
+Use WebP whenever possible. Images in the post folder are automatically optimised by Astro.
 
-**Tabla de contenidos (TOC):**  
-Se genera automaticamente a partir de los `h2` y `h3`. Aparece en la sidebar izquierda en desktop.  
-Los `h3` aparecen indentados. Un indicador verde marca la seccion activa al hacer scroll.  
-
----
-
-### Comandos  
-
-| Comando | Que hace |
-|---------|----------|
-| `npm run dev` | Servidor local en `localhost:4321` |
-| `npm run build` | Build de produccion en `dist/` |
-| `npm run preview` | Previsualiza el build local |
+**Table of contents (TOC):**
+Auto-generated from `h2` and `h3` headings. Shown on the left sidebar on desktop.  
+`h3` headings are indented. A green indicator tracks the active section on scroll.
 
 ---
 
-### Cosas a recordar  
+### Commands
 
-- El idioma por defecto es **es** (sin prefijo en la URL).  
-- Las traducciones de UI estan en `src/i18n/ui.ts`.  
-- Los posts sin cuerpo no se rompen, pero no muestran contenido.  
-- Las imagenes se ponen en la misma carpeta que el `index.md`, no en `public/`.  
-- Para imagenes externas usa la URL directa en `![]()`.  
+| Command | What it does |
+|---------|-------------|
+| `npm run dev` | Local dev server at `localhost:4321` |
+| `npm run build` | Production build in `dist/` |
+| `npm run preview` | Preview the local build |
+
+---
+
+### Things to remember
+
+- The default language is **es** (no URL prefix).
+- UI translations live in `src/i18n/ui.ts`.
+- Posts without body content do not break, but render no content.
+- Images go in the slug folder alongside the `.md` files, not in `public/`. One copy per post, shared across languages.
+- For external images use the direct URL in `![]()`.

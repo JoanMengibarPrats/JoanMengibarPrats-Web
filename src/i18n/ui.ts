@@ -11,10 +11,12 @@ export const ui = {
     'nav.modalTitle': 'Mis idiomas',
     'nav.blog': 'Blog',
     'nav.about': 'About',
+    'nav.allArticles': 'Artículos',
     
     'home.scroll': 'Sigue bajando',
     
     'blog.viewAll': 'Blog Completo',
+    'blog.backToList': '← Todos los artículos',
     'blog.1.title': 'Firmware Extraction',
     'blog.1.category': 'Hardware Hacking',
     'blog.1.desc': 'Una guía para extraer correctamente el firmware de un dispositivo IoT.',
@@ -49,10 +51,12 @@ export const ui = {
     'nav.modalTitle': 'My languages',
     'nav.blog': 'Blog',
     'nav.about': 'About',
+    'nav.allArticles': 'Articles',
     
     'home.scroll': 'Scroll Down',
     
     'blog.viewAll': 'Full Blog',
+    'blog.backToList': '← All articles',
     'blog.1.title': 'JF_ WEBPAGE',
     'blog.1.category': 'Astro / Vibe Coding',
     'blog.1.desc': 'How I built my website using artificial intelligence.',
@@ -84,10 +88,12 @@ export const ui = {
     'nav.modalTitle': 'Els meus idiomes',
     'nav.blog': 'Blog',
     'nav.about': 'About',
+    'nav.allArticles': 'Articles',
     
     'home.scroll': 'Baixar',
     
     'blog.viewAll': 'Blog Complet',
+    'blog.backToList': '← Tots els articles',
     'blog.1.title': 'JF_ PÀGINA WEB',
     'blog.1.category': 'Astro / Vibe Coding',
     'blog.1.desc': 'Com he creat la meua pàgina web amb intel·ligència artificial.',

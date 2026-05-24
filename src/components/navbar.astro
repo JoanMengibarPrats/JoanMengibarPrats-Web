@@ -13,7 +13,7 @@ const isBlogPost = currentPath.includes('/blog/');
 const basePath = lang === 'es' ? '/' : `/${lang}/`;
 ---
 
-<nav id="mainNav" class="fixed top-5 left-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center mix-blend-difference pointer-events-none transition-transform duration-300" aria-label="Main Navigation">
+<nav id="mainNav" class="fixed top-[clamp(0.15rem,1dvh,0.75rem)] left-0 w-full z-50 px-6 py-8 md:px-12 flex justify-between items-center mix-blend-difference pointer-events-none transition-transform duration-300" aria-label="Main Navigation">
   
   <div class="flex items-center gap-6 md:gap-8 pointer-events-auto">
     <a href={basePath} class="text-white font-syncopate text-xl md:text-2xl font-black uppercase tracking-tighter interactable transition-transform hover:scale-105" aria-label="Go to homepage">

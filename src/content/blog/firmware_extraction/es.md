@@ -1,6 +1,6 @@
 ---
 title: "Firmware Extraction"
-description: "Como extraer el firmware de un dispositivo mediante el lector CH301A"
+description: "Como extraer el firmware de un dispositivo mediante el lector CH341A"
 pubDate: 2026-04-28
 tags: ["Hardware Hacking", "IoT", "Firmware Extraction"]
 ---
@@ -50,6 +50,10 @@ En el repositorio oficial de [CH341A](https://github.com/YTEC-info/CH341A-Softwa
 Personalmente recomiendo emplear la metodología de desoldar el chip; aunque sea más compleja, es una lectura mucho más limpia. La pinza, para leer el chip, introduce voltaje en este para activarlo, lo que puede resultar en activar otras partes de la placa base y ensuciar la copia extraída.
 
 Otra buena práctica es la de realizar varias lecturas del firmware para luego comparar los hashes de las distintas imágenes; esto nos garantiza que ha habido una buena lectura. Si por lo que sea se va a mover la imagen a otra máquina, una vez realizado el traslado recomiendo comprobar el hash de nuevo para garantizar la cadena de custodia de la imagen original; un solo bit contaminado en el firmware nos puede complicar muchísimo la vida.
+
+Esta es una de las formas más comunes pero no la única, el firmware se puede extraer desde la interfaz de usuario UART o JTAG, a veces desde la propia página web de soporte, otras desde la interfaz web del dispositivo, interceptando actualizaciones... Como ves el límite está en la creatividad de cada uno para conseguirlo.
+
+También advertirte que muchas veces el contenido del firmware está cifrado, sobre todo en dispositivos críticos como cámaras de seguridad o datáfonos, sin embargo, en mi opinión, la seguridad por oscuridad revela que si sorteamos esta barrera las probabilidades de encontrar mayores vulnerabilidades en el código aumentan exponencialmente.
 
 ## Resumen del procedimiento
 

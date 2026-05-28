@@ -51,6 +51,10 @@ I personally recommend using the desoldering methodology; although it is more co
 
 Another good practice is to perform several firmware reads and then compare the hashes of the different images; this guarantees that a good read has been performed. If for whatever reason the image is to be moved to another machine, once the transfer is done I recommend checking the hash again to ensure the chain of custody of the original image; a single corrupted bit in the firmware can make our lives incredibly difficult.
 
+This is one of the most common methods but not the only one; firmware can be extracted through the UART or JTAG user interface, sometimes from the manufacturer's support website, other times from the device's web interface, by intercepting updates... As you can see, the limit lies in each person's creativity to achieve it.
+
+I should also warn you that firmware content is often encrypted, especially in critical devices such as security cameras or payment terminals. However, in my opinion, security through obscurity reveals that if we overcome this barrier, the chances of finding major vulnerabilities in the code increase exponentially.
+
 ## Procedure summary
 
 1. Chip identification.

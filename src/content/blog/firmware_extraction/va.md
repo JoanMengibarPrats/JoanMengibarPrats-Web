@@ -51,6 +51,10 @@ Personalment recomane emprar la metodologia de desoldar el xip; encara que siga 
 
 Una altra bona pràctica és la de realitzar diverses lectures del firmware per a després comparar els hashes de les diferents imatges; açò ens garantix que hi ha hagut una bona lectura. Si per algun motiu es va a moure la imatge a una altra màquina, una vegada realitzat el trasllat recomane comprovar el hash de nou per a garantir la cadena de custòdia de la imatge original; un sol bit contaminat en el firmware ens pot complicar moltíssim la vida.
 
+Esta és una de les formes més comunes però no l'única, el firmware es pot extraure des de la interfície d'usuari UART o JTAG, a vegades des de la pròpia pàgina web de suport, altres des de la interfície web del dispositiu, interceptant actualitzacions... Com veus el límit està en la creativitat de cadascú per a aconseguir-ho.
+
+També advertir-te que moltes vegades el contingut del firmware està xifrat, sobretot en dispositius crítics com càmeres de seguretat o datàfons. No obstant això, en la meua opinió, la seguretat per foscor revela que si sortegem esta barrera les probabilitats de trobar majors vulnerabilitats en el codi augmenten exponencialment.
+
 ## Resum del procediment
 
 1. Reconeixement del xip.

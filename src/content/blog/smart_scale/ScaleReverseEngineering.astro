@@ -1,0 +1,410 @@
+---
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'es' } = Astro.props;
+
+const labels = {
+  header: { es: 'Simulador de Báscula', en: 'Scale Simulator', va: 'Simulador de Bàscula' },
+  weight: { es: 'Peso (kg)', en: 'Weight (kg)', va: 'Pes (kg)' },
+  bigEndian: { es: 'Big Endian', en: 'Big Endian', va: 'Big Endian' },
+  rawLabel: { es: 'Raw', en: 'Raw', va: 'Raw' },
+  pesoLabel: { es: 'Peso', en: 'Weight', va: 'Pes' },
+  sync: { es: 'Sync', en: 'Sync', va: 'Sync' },
+  cmd: { es: 'Cmd', en: 'Cmd', va: 'Cmd' },
+  pesoFluct: { es: 'Peso (fluct)', en: 'Weight (fluct)', va: 'Pes (fluct)' },
+  pesoEstable: { es: 'Peso (estable)', en: 'Weight (stable)', va: 'Pes (estable)' },
+  flag: { es: 'Flag', en: 'Flag', va: 'Flag' },
+  chk: { es: 'Chk', en: 'Chk', va: 'Chk' },
+} as const;
+---
+
+<div class="scale-sim my-12 border border-zinc-800 bg-zinc-950 font-fira">
+  <div class="px-6 py-4 border-b border-zinc-800">
+    <span class="text-xs text-zinc-500 font-mono uppercase tracking-widest">
+      {labels.header[lang as keyof typeof labels.header]}
+    </span>
+  </div>
+
+  <div class="px-4 md:px-8 py-6 md:py-10 lg:py-14 flex flex-col items-center gap-5 lg:gap-6">
+
+    <!-- HEX DUMP: terminal style -->
+    <div id="hex-dump" class="w-full max-w-xl bg-black border border-zinc-800/60 p-4 lg:p-5 font-mono text-[10px] md:text-xs leading-relaxed tracking-wider select-none overflow-x-auto">
+      <div id="hex-line-0" class="hex-line whitespace-pre"></div>
+      <div id="hex-line-1" class="hex-line whitespace-pre"></div>
+      <div id="hex-line-2" class="hex-line whitespace-pre"></div>
+      <div id="hex-line-3" class="hex-line whitespace-pre"></div>
+    </div>
+
+    <!-- COLOR LEGEND: outside, subtle -->
+    <div id="hex-legend" class="flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[9px] md:text-[10px] uppercase tracking-wider font-mono">
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-amber-500/70 inline-block"></span><span class="text-zinc-600">{labels.sync[lang as keyof typeof labels.sync]}</span></span>
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-blue-500/70 inline-block"></span><span class="text-zinc-600">{labels.cmd[lang as keyof typeof labels.cmd]}</span></span>
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-red-500/70 inline-block"></span><span class="text-zinc-600">{labels.pesoFluct[lang as keyof typeof labels.pesoFluct]}</span></span>
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500/70 inline-block"></span><span class="text-zinc-600">{labels.pesoEstable[lang as keyof typeof labels.pesoEstable]}</span></span>
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-purple-500/70 inline-block"></span><span class="text-zinc-600">{labels.flag[lang as keyof typeof labels.flag]}</span></span>
+      <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-zinc-500/70 inline-block"></span><span class="text-zinc-600">{labels.chk[lang as keyof typeof labels.chk]}</span></span>
+    </div>
+
+    <!-- PAYLOAD CARD: green left accent -->
+    <div id="payload-card" class="w-full max-w-sm bg-zinc-900 border border-zinc-800 border-l-2 border-l-green-500/40 p-5 lg:p-6 font-mono text-xs md:text-sm">
+      <div class="flex flex-col gap-2.5">
+        <div class="flex justify-between items-center">
+          <span class="text-zinc-500 uppercase tracking-wider text-[10px] md:text-xs">
+            {labels.bigEndian[lang as keyof typeof labels.bigEndian]}
+          </span>
+          <span id="payload-hex" class="text-green-500 font-bold tracking-wider">00 00</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-zinc-500 uppercase tracking-wider text-[10px] md:text-xs">
+            {labels.rawLabel[lang as keyof typeof labels.rawLabel]}
+          </span>
+          <span id="payload-raw" class="text-white tracking-wider">0</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-zinc-500 uppercase tracking-wider text-[10px] md:text-xs">
+            {labels.pesoLabel[lang as keyof typeof labels.pesoLabel]}
+          </span>
+          <span id="payload-kg" class="text-white tracking-wider">0.00 kg</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCALE DEVICE: LCD + input unified -->
+    <div class="w-full max-w-sm bg-zinc-900 border border-zinc-800 p-5 lg:p-6 select-none">
+      
+      <!-- LCD -->
+      <div class="lcd-frame bg-zinc-950 border border-zinc-800 rounded shadow-[inset_0_0_30px_rgba(34,197,94,0.04)] px-4 py-3">
+        <div id="lcd-digits" class="flex items-center justify-center gap-[2px]" style="height:76px">
+
+          <div id="ds-0" class="digit-slot" style="width:38px;height:76px;position:relative">
+            <span class="seg seg-h seg-a" data-name="A" style="top:1.5px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-b" data-name="B" style="top:4.5px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-c" data-name="C" style="top:37px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-d" data-name="D" style="top:64px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-e" data-name="E" style="top:37px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-f" data-name="F" style="top:4.5px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-g" data-name="G" style="top:33px;left:6px;width:26px;height:7px;"></span>
+          </div>
+          <div id="ds-1" class="digit-slot" style="width:38px;height:76px;position:relative">
+            <span class="seg seg-h seg-a" data-name="A" style="top:1.5px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-b" data-name="B" style="top:4.5px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-c" data-name="C" style="top:37px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-d" data-name="D" style="top:64px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-e" data-name="E" style="top:37px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-f" data-name="F" style="top:4.5px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-g" data-name="G" style="top:33px;left:6px;width:26px;height:7px;"></span>
+          </div>
+          <div id="ds-2" class="digit-slot" style="width:38px;height:76px;position:relative">
+            <span class="seg seg-h seg-a" data-name="A" style="top:1.5px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-b" data-name="B" style="top:4.5px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-c" data-name="C" style="top:37px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-d" data-name="D" style="top:64px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-e" data-name="E" style="top:37px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-f" data-name="F" style="top:4.5px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-g" data-name="G" style="top:33px;left:6px;width:26px;height:7px;"></span>
+          </div>
+
+          <div class="flex items-center mx-[2px]">
+            <div id="lcd-dot" class="w-[8px] h-[8px] bg-zinc-800"></div>
+          </div>
+
+          <div id="ds-3" class="digit-slot" style="width:38px;height:76px;position:relative">
+            <span class="seg seg-h seg-a" data-name="A" style="top:1.5px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-b" data-name="B" style="top:4.5px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-c" data-name="C" style="top:37px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-d" data-name="D" style="top:64px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-e" data-name="E" style="top:37px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-f" data-name="F" style="top:4.5px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-g" data-name="G" style="top:33px;left:6px;width:26px;height:7px;"></span>
+          </div>
+          <div id="ds-4" class="digit-slot" style="width:38px;height:76px;position:relative">
+            <span class="seg seg-h seg-a" data-name="A" style="top:1.5px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-b" data-name="B" style="top:4.5px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-c" data-name="C" style="top:37px;left:29px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-d" data-name="D" style="top:64px;left:6px;width:26px;height:7px;"></span>
+            <span class="seg seg-v seg-e" data-name="E" style="top:37px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-v seg-f" data-name="F" style="top:4.5px;left:2px;width:7px;height:27px;"></span>
+            <span class="seg seg-h seg-g" data-name="G" style="top:33px;left:6px;width:26px;height:7px;"></span>
+          </div>
+
+        </div>
+        <div class="text-center mt-1.5 text-[10px] text-zinc-600 font-mono tracking-widest uppercase">kg</div>
+      </div>
+
+      <!-- INPUT + RAW (inside device card) -->
+      <div class="mt-5 pt-5 border-t border-zinc-800 flex flex-col gap-4">
+        
+        <div class="flex flex-col gap-1.5">
+          <label for="weight-input" class="text-xs text-zinc-500 font-mono uppercase tracking-widest">
+            {labels.weight[lang as keyof typeof labels.weight]}
+          </label>
+          <input
+            id="weight-input"
+            type="text"
+            inputmode="decimal"
+            placeholder="0.00"
+            class="w-full bg-zinc-950 border border-zinc-700 px-4 py-2.5 text-lg text-center text-white font-mono focus:outline-none focus:border-green-500 transition-colors placeholder:text-zinc-700"
+          />
+        </div>
+
+        <div id="raw-line" class="text-xs text-zinc-600 font-mono tracking-wide text-center">
+          &gt; 0 = 0.00 &divide; 0.005
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style is:global>
+  .seg {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.025);
+    transition: background-color 0.12s ease;
+  }
+
+  .seg.on {
+    background: #22c55e;
+  }
+
+  #lcd-dot {
+    transition: background-color 0.12s ease;
+  }
+
+  #lcd-dot.on {
+    background: #22c55e;
+  }
+
+  .digit-slot.blank .seg {
+    background: transparent;
+  }
+
+  .seg-h {
+    clip-path: polygon(7% 0%, 93% 0%, 100% 50%, 93% 100%, 7% 100%, 0% 50%);
+  }
+
+  .seg-v {
+    clip-path: polygon(55% 0%, 100% 5%, 100% 95%, 50% 100%, 0% 95%, 0% 5%);
+  }
+
+  .hex-line {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .hex-addr { color: #52525b; }
+  .hex-sync { color: #d97706; }
+  .hex-cmd  { color: #3b82f6; }
+  .hex-payload-fluct { color: #ef4444; }
+  .hex-payload-stable { color: #22c55e; }
+  .hex-flag { color: #a855f7; }
+  .hex-chk  { color: #71717a; }
+  .hex-unknown { color: #3f3f46; }
+  .hex-ascii { color: rgba(113, 113, 122, 0.4); }
+</style>
+
+<script>
+  const SEGMENT_MAP: Record<number, string> = {
+    0: 'ABCDEF',
+    1: 'BC',
+    2: 'ABDEG',
+    3: 'ABCDG',
+    4: 'BCFG',
+    5: 'ACDFG',
+    6: 'ACDEFG',
+    7: 'ABC',
+    8: 'ABCDEFG',
+    9: 'ABCDFG',
+  };
+
+  const digitSlots = [0, 1, 2, 3, 4].map(i => document.getElementById(`ds-${i}`)!);
+  const lcdDot = document.getElementById('lcd-dot')!;
+  const weightInput = document.getElementById('weight-input') as HTMLInputElement;
+  const rawLine = document.getElementById('raw-line')!;
+  const hexLines = [0, 1, 2, 3].map(i => document.getElementById(`hex-line-${i}`)!);
+  const payloadHex = document.getElementById('payload-hex')!;
+  const payloadRaw = document.getElementById('payload-raw')!;
+  const payloadKg = document.getElementById('payload-kg')!;
+
+  const MAX_KG = 200;
+  const CONV_FACTOR = 200;
+  const BASE_ADDR = 0x000004D0;
+
+  let updating = false;
+
+  function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function kgToRaw(kg: number): number {
+    return Math.round(kg * CONV_FACTOR);
+  }
+
+  function calcChecksum(raw: number): number {
+    const hi = (raw >> 8) & 0xFF;
+    const lo = raw & 0xFF;
+    return (0xAA ^ 0x51 ^ 0x03 ^ hi ^ lo ^ 0x02) & 0xFF;
+  }
+
+  function byteHex(b: number): string {
+    return b.toString(16).toUpperCase().padStart(2, '0');
+  }
+
+  function rawToHexPair(raw: number): string {
+    const hi = (raw >> 8) & 0xFF;
+    const lo = raw & 0xFF;
+    return byteHex(hi) + ' ' + byteHex(lo);
+  }
+
+  function asciiChar(b: number): string {
+    return (b >= 0x20 && b <= 0x7E) ? String.fromCharCode(b) : '.';
+  }
+
+  function jitter(raw: number, range: number): number {
+    const offset = Math.floor(Math.random() * range * 2) - range;
+    return Math.max(0, raw + offset);
+  }
+
+  function renderHexDump(raw: number) {
+    const TRAMES = 9;
+    const BYTES_PER_FRAME = 7;
+    const totalBytes = TRAMES * BYTES_PER_FRAME;
+
+    const framePayloads: number[] = [];
+    const frameIsStable: boolean[] = [];
+
+    for (let f = 0; f < 8; f++) {
+      if (f < 5) {
+        framePayloads.push(jitter(raw, 25));
+        frameIsStable.push(false);
+      } else {
+        framePayloads.push(raw);
+        frameIsStable.push(true);
+      }
+    }
+    framePayloads.push(raw);
+    frameIsStable.push(true);
+
+    const bytes: number[] = [];
+    const colorClasses: string[] = [];
+
+    for (let f = 0; f < TRAMES; f++) {
+      const p = framePayloads[f];
+      const stable = frameIsStable[f];
+      const hi = (p >> 8) & 0xFF;
+      const lo = p & 0xFF;
+      const chk = calcChecksum(p);
+
+      bytes.push(0xAA); colorClasses.push('hex-sync');
+      bytes.push(0x51); colorClasses.push('hex-sync');
+      bytes.push(0x03); colorClasses.push('hex-cmd');
+      bytes.push(hi);   colorClasses.push(stable ? 'hex-payload-stable' : 'hex-payload-fluct');
+      bytes.push(lo);   colorClasses.push(stable ? 'hex-payload-stable' : 'hex-payload-fluct');
+      bytes.push(0x02); colorClasses.push('hex-flag');
+      bytes.push(chk);  colorClasses.push('hex-chk');
+    }
+
+    for (let lineIdx = 0; lineIdx < 4; lineIdx++) {
+      const addr = BASE_ADDR + lineIdx * 16;
+      const addrStr = addr.toString(16).toUpperCase().padStart(8, '0');
+
+      let hexHtml = '';
+      let asciiHtml = '';
+
+      for (let i = 0; i < 16; i++) {
+        const idx = lineIdx * 16 + i;
+        if (idx < totalBytes) {
+          const cls = colorClasses[idx % colorClasses.length];
+          hexHtml += `<span class="${cls}">${byteHex(bytes[idx])}</span> `;
+          asciiHtml += `<span class="${cls}">${asciiChar(bytes[idx])}</span>`;
+        } else {
+          hexHtml += `<span class="hex-unknown">XX</span> `;
+          asciiHtml += `<span class="hex-unknown">.</span>`;
+        }
+      }
+
+      hexLines[lineIdx].innerHTML =
+        `<span class="hex-addr">${addrStr}:</span> ${hexHtml} <span class="hex-ascii">${asciiHtml}</span>`;
+    }
+  }
+
+  function setDigit(slot: HTMLElement, value: number | null) {
+    if (value === null) {
+      slot.classList.add('blank');
+      return;
+    }
+    slot.classList.remove('blank');
+    const activeSet = SEGMENT_MAP[value] || '';
+    slot.querySelectorAll<HTMLElement>('.seg').forEach(seg => {
+      seg.classList.toggle('on', activeSet.includes(seg.dataset.name || ''));
+    });
+  }
+
+  function setDisplay(digits: string) {
+    for (let i = 0; i < 5; i++) {
+      const ch = digits[i];
+      const num = (ch === ' ' || ch === '.') ? null : parseInt(ch, 10);
+      setDigit(digitSlots[i], num);
+    }
+    lcdDot.classList.toggle('on', true);
+  }
+
+  function render(kg: number) {
+    const display = kg.toFixed(2).padStart(6, ' ').replace('.', '');
+    setDisplay(display);
+
+    const raw = kgToRaw(kg);
+    renderHexDump(raw);
+
+    payloadHex.textContent = rawToHexPair(raw);
+    payloadRaw.textContent = String(raw);
+    payloadKg.textContent = kg.toFixed(2) + ' kg';
+
+    rawLine.innerHTML = `&gt; ${raw} = ${kg.toFixed(2)} &divide; 0.005`;
+  }
+
+  function parseAndUpdate() {
+    if (updating) return;
+    updating = true;
+
+    const raw = weightInput.value.trim().replace(',', '.');
+    if (raw === '') {
+      render(0);
+      updating = false;
+      return;
+    }
+
+    let kg = parseFloat(raw);
+    if (isNaN(kg)) {
+      updating = false;
+      return;
+    }
+    kg = clamp(kg, 0, MAX_KG);
+    kg = Math.round(kg * 100) / 100;
+
+    render(kg);
+    updating = false;
+  }
+
+  weightInput.addEventListener('input', parseAndUpdate);
+
+  weightInput.addEventListener('blur', () => {
+    const raw = weightInput.value.trim().replace(',', '.');
+    if (raw === '') {
+      render(0);
+      return;
+    }
+    let kg = parseFloat(raw);
+    if (isNaN(kg) || kg < 0) kg = 0;
+    if (kg > MAX_KG) kg = MAX_KG;
+    kg = Math.round(kg * 100) / 100;
+    weightInput.value = kg.toFixed(2);
+    render(kg);
+  });
+
+  render(0);
+</script>

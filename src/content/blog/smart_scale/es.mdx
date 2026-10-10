@@ -1,0 +1,250 @@
+---
+title: "Ingeniería Inversa de una Báscula Inteligente"
+description: "Analizando el funcionamiento de una báscula inteligente desde un enfoque de caja negra"
+pubDate: 2026-10-13
+tags: ["Reverse Engineering", "IoT", "Black Box"]
+image: "/og-bascula.jpg"
+---
+
+import { Image } from 'astro:assets';
+import ScaleReverseEngineering from './ScaleReverseEngineering.astro';
+import basculaIntro from './bascula-intro.png';
+import placaLeds from './placa-leds.jpg';
+import placaComponentes from './placa-componentes.jpg';
+import medicionVoltaje from './medicion-voltaje.png';
+import analizadorLogico from './analizador-logico.jpg';
+import pulseviewSenales from './pulseview-senales.png';
+import pulseviewZoomBit from './pulseview-zoom-bit.png';
+import uartBaudrate9600 from './uart-baudrate-9600.png';
+import conexionUartUsb from './conexion-uart-usb.png';
+import uartOutputAscii from './uart-output-ascii.png';
+import uartComandosHex from './uart-comandos-hex.png';
+import medicionesHex from './mediciones-hex.png';
+import dongleBluetooth from './dongle-bluetooth.png';
+import bluetoothctlScan from './bluetoothctl-scan.png';
+import btmonCaptura from './btmon-captura.png';
+import captureRawOutput from './capture-raw-output.png';
+import sesionGuiada1 from './sesion-guiada-1.png';
+import sesionGuiada2 from './sesion-guiada-2.png';
+import scriptFinalOutput from './script-final-output.png';
+
+## Introducción
+
+En el siguiente artículo se enseñará y reproducirá un trabajo de ingeniería inversa con el fin de obtener una información desconocida desde el **producto final**, en este caso la báscula [Xiaomi Smart Scale 2](https://www.mi.com/en/product/mi-smart-scale-2/).
+
+La idea de este proyecto surgió mientras me pesaba en esta báscula inteligente. Esta báscula se comunica mediante bluetooth al dispositivo móvil para enviar los datos del peso (en modelos más avanzados envía más datos, como el porcentaje de grasa etc) por lo que me pareció un buen objetivo para redactar un artículo didáctico.
+
+<Image src={basculaIntro} alt="Báscula Xiaomi Smart Scale 2" width={1200} />
+
+A continuación leerás todo mi proceso lógico para entender este dispositivo, separándolo en tres capítulos: reconocimiento, hardware hacking y Bluetooth reverse engineering. Una vez leídos tendrás una idea base de cómo investigadores independientes crean software de código libre de dispositivos IoT comerciales.
+
+## Reconocimiento
+
+Una de las primeras cosas a la hora de realizar ingeniería inversa en un producto es el de conocer sus componentes y métodos de comunicación. La báscula emplea una comunicación **Bluetooth 5.0** para transmitir los datos sensibles, además, dispone de un hardware sencillo y económico para calcular el peso de la persona, para identificar el hardware simplemente he desmontado la báscula.
+
+Al desmontar la báscula vi que su funcionamiento era simple, 4 sensores de peso, uno en cada esquina, conectados a una placa base del tamaño de una raspberry pi pico 2. En esta parte de la cara se pueden ver los leds de la báscula, una interfaz con diferentes puertos y las conexiones con los sensores y con la fuente de alimentación:
+
+<Image src={placaLeds} alt="Cara de la placa base con los LEDs y las conexiones" width={1200} />
+
+En esta otra cara podemos identificar los elementos más importantes de la placa base, la CPU, la memoria flash y la antena de señal. Desgraciadamente no disponía de las herramientas necesarias para extraer el firmware de este chip ni de la interfaz de la placa, esto se podría realizar con un lector jtag o simplemente desoldando el chip y leyendo el firmware, si te interesa más este proceso, dispongo de una guía introductoria: [Firmware Extraction](/blog/firmware_extraction)
+
+<Image src={placaComponentes} alt="Cara de la placa base con la CPU, la memoria flash y la antena" width={1200} />
+
+Sin embargo, había unos pines muy conocidos en esta interfaz, el Tx y el Rx. Tx viene de Transmisor y Rx de Receiver, como su nombre indica, uno envía señales eléctricas y el otro las recibe. Estas interfaces se emplean en producción tanto para flashear el firmware como para testear su correcto funcionamiento, por lo que las podemos emplear para obtener información mediante un adaptador USB UART.
+
+Lo primero que necesitaba saber era el voltaje que empleaba a la hora de transmitir, normalmente emplean **3.3V** pero otras emplean **5V**, es muy importante saberlo para no cortocircuitar el adaptador. Para medir el voltaje conecté el COM de mi multímetro al GND de la placa base y el cable rojo al TX, con el multímetro midiendo en continua.
+
+<Image src={medicionVoltaje} alt="Medición del voltaje del pin TX con el multímetro" width={1200} />
+
+Una vez confirmado que el voltaje es 3,3V falta saber a qué velocidad transmite el Tx, la velocidad de transmisión de señales eléctricas se mide en baudios. La frecuencia más común es la de 115.000 Baudios, sin embargo eso no es un estándar y depende del fabricante, por ello aquí te voy a enseñar cómo se calculan los baudios de una transmisión UART.
+
+## Hardware Reverse Engineering
+
+Para esta parte opté por utilizar mi analizador lógico. Un analizador lógico es un instrumento de medida que captura los datos de un circuito digital y los muestra para su posterior análisis.
+
+Como se ve en la imagen, se conecta el GND con el GND, el Tx con el CH1 y el Rx con el CH2:
+
+<Image src={analizadorLogico} alt="Analizador lógico conectado a la placa base" width={1200} />
+
+Después abro el programa pulseview, lo configuro y obtengo las siguientes señales cuando la placa base se enciende:
+
+<Image src={pulseviewSenales} alt="Señales capturadas con PulseView al encender la placa" width={1200} />
+
+Cuando tengo la copia hago zoom a los primeros datos capturados del D0:
+
+<Image src={pulseviewZoomBit} alt="Zoom de los primeros datos capturados del D0" width={1200} />
+
+Una vez hecho el zoom lo que me interesa es saber el menor intervalo de tiempo en el que se cambia de un bit a otro, de 0 a 1, por eso selecciono la "montaña" más pequeña y marco con dos puntos el inicio y el final de este, esto lo que realmente hace es restar el punto A (inicio del tiempo) al punto B (final del tiempo) Calculando así el periodo de 105 micro segundos. Una vez lo tengo la formula es muy sencilla:
+
+Baudrate = 1 / Tiempo por bit (segundos) = 1 / 0.000105 = 9523
+
+Este lo redondeo a la emisión de baudrate más común que es 9600.
+
+<Image src={uartBaudrate9600} alt="Analizador lógico configurado a 9600 baudios" width={1200} />
+
+Una vez configurado en el analizador lógico puedo ver tramas de bits con sentido y ningún mensaje de error, por lo que ya tengo el voltaje (3.3V) y el baudrate (9600 baudios), es hora de pasar al adaptador USB UART.
+
+Para conectar el UART de la placa base al USB tenemos que conectar el GND con el GND, el Tx de la placa base con el Rx del adaptador y el Rx de la placa base con el Tx del adaptador. En esta placa base es muy sencillo identificarlos ya que están identificados con texto plano, pero muchas veces estos pines no tienen la identificación, para identificar el Tx se puede emplear el multímetro midiendo su voltaje al encender el dispositivo, en los primeros segundos el Tx enviará información, creando una fluctuación en el voltaje.
+
+<Image src={conexionUartUsb} alt="Conexión del UART de la placa al adaptador USB" width={1200} />
+
+Nótese también que el interruptor VCC está en 3,3V.
+
+Si leemos el output del USB en formato ASCII el texto prácticamente no tiene sentido, sin embargo podemos confirmar que la lectura es correcta:
+
+<Image src={uartOutputAscii} alt="Salida del puerto serie en formato ASCII" width={1200} />
+
+Por lo que mediante los siguientes comandos decidí sacar el output en hexadecimal para ver qué datos mostraba:
+
+<Image src={uartComandosHex} alt="Comandos para leer la salida en hexadecimal" width={1200} />
+
+Estos datos aparecían nada más darle energía a la báscula, cada vez que pesaba algo en ella aparecía una secuencia nueva, por lo que supuse que era el cálculo y transmisión final del peso a los leds. Mediante varias mediciones, anotando el peso final y el formato hexadecimal como la siguiente muestra:
+
+<Image src={medicionesHex} alt="Muestras de mediciones en hexadecimal" width={1200} />
+
+En este punto utilicé inteligencia artificial para detectar patrones en los datos, esta llegó a la siguiente conclusión:
+
+- **Cabecera (`AA 51`):** Son los bytes de sincronización. Le dicen al receptor: _"Atención, empieza un paquete de datos"_.
+- **Comando (`03`):** Identifica el tipo de carga útil. En este dispositivo, el `03` indica que los datos a continuación corresponden a un pesaje.
+- **Carga Útil / Peso (`15 9A`):** El núcleo de nuestro dato. Al viajar por un cable físico, el microcontrolador utiliza el formato **Big Endian** (el byte de mayor peso va primero, siguiendo el orden lógico de lectura humano).
+- **Estado (`02`):** Un indicador (flag) binario. Este `02` le confirma a la pantalla que el peso es definitivo y debe dejar de parpadear.
+- **Checksum (`75`):** Una suma de verificación para garantizar la integridad eléctrica del mensaje y evitar lecturas corruptas por interferencias en la placa.
+
+Si cogemos la carga útil en hexadecimal, la pasamos a decimal: 5530. Y luego la multiplicamos por 0,005 obtenemos: **27.65**, que es el peso final que transmite el marcador de la báscula, esta medición la he comprobado en cada una de las mediciones tomadas, demostrando así que la conversión de los datos es correcta y es la que supuestamente realiza la báscula, finalizando así el entendimiento del funcionamiento del hardware de la báscula.
+
+Para entender mejor este funcionamiento he programado esta simulación de báscula, en esta le puedes poner el peso que quieras:
+
+<ScaleReverseEngineering lang="es" />
+
+## Bluetooth Reverse Engineering
+
+Para la comunicación Bluetooth con mi báscula empleé un adaptador Zexmte con soporte hasta BLE 6.0, como el que aparece en la siguiente imagen:
+
+<Image src={dongleBluetooth} alt="Adaptador Bluetooth Zexmte" width={1200} />
+
+La báscula no implementa ningún método de autenticación: cuando una persona se sube, emite un broadcast con los datos de la medición. Cualquier dispositivo en rango puede leerlos — ni siquiera hace falta conocer la MAC de antemano, un simple escaneo la revela.
+
+Al principio no sabía si me enfrentaba a una comunicación cifrada. Era poco probable, dado lo sencillo del hardware, pero debía asegurarlo. Para descartarlo realicé una captura pasiva de los paquetes BLE mientras me pesaba: no hizo falta emparejar ni conectar nada; las tramas viajan en claro dentro de los advertisements.
+
+Antes que nada: la MAC la descubrí con `bluetoothctl` en Kali. Es muy sencilla de identificar ya que viene acompañada de la etiqueta `MI SCALE2`:
+
+<Image src={bluetoothctlScan} alt="Descubrimiento de la báscula con bluetoothctl" width={1200} />
+
+Con el comando `sudo btmon` registro los paquetes que se están capturando desde mi dongle, estos son los de la báscula:
+
+<Image src={btmonCaptura} alt="Paquetes BLE de la báscula capturados con btmon" width={1200} />
+
+Como se ve en la captura, en los paquetes BLE se identifica mucha información valiosa, podemos ver que es una báscula, la compañía y los datos que envía en el Data [10], lo que nos falta es saber qué es exactamente cada uno de esos valores.
+
+Para averiguarlo no partía de cero: el análisis del hardware ya me había dado pistas, pero necesitaba datos limpios. Empecé con el script más simple posible — filtrando por la MAC descubierta, volcaba cada paquete tal cual llegaba:
+
+```python
+import asyncio
+from bleak import BleakScanner
+
+MAC = "70:87:9E:35:9D:F0"  # the MAC address we found with bluetoothctl
+
+def on_packet(device, adv_data):
+    # only care about our scale
+    if device.address.upper() != MAC:
+        return
+    # an advertisement can contain several data sections
+    for uuid, payload in adv_data.service_data.items():
+        print(f"[{uuid}]  {payload.hex(' ')}")
+
+async def main():
+    scanner = BleakScanner(detection_callback=on_packet)
+    await scanner.start()
+
+    while True:
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+El script completo está disponible en el repositorio: [capture_raw.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/capture_raw.py).
+
+En el momento de subirme y pesar 77,25 kg llegaron los siguientes paquetes:
+
+<Image src={captureRawOutput} alt="Salida del primer script de captura" width={1200} />
+
+Tres observaciones saltan a la vista:
+
+1. Se repite. Cada trama llega dos o más veces seguidas. La báscula no espera a que nadie le pregunte: retransmite su información constantemente mientras tiene algo que decir.
+
+2. No es un paquete estático. Comparando la primera y la última línea, la trama cambia con el tiempo: el primer byte alterna entre tres valores (02, 22 y a2), el siguiente cambia en algún momento (64 → 5a), y el último byte avanza poco a poco (1a → 21 → 1c → 24).
+
+3. Hay una parte fija. Los cinco bytes centrales (b2 07 01 02 05) no cambian en toda la captura — huele a identificadores o configuración.
+
+En este momento decidí comparar los datos extraídos con los anteriores explicados en el proceso del Hardware Hacking. Si te animas a colocar el peso: 77,25 kg en el emulador de la báscula anterior podrás ver que en el apartado Big Endian marca: `3C 5A`, este valor en little endian se expresa como: `5a 3c`, valores que aparecen en el segundo y tercer byte de la captura de la imagen anterior, por lo que se puede suponer que el factor de conversión del peso es el mismo: Little Endian (`5a 3c`) --> Hex (`0x3C5A`) --> Decimal (15450) --> 15450 x 0.005 = 77,25 kg.
+
+Una vez que tuve un concepto sólido de los posibles valores, había que demostrarlos. Escribí un segundo script que me guiaba por una sesión de experimentos controlados: en cada fase variaba una única condición y registraba los paquetes crudos junto a lo que marcaba el LCD.
+
+Las cinco fases, cada una pensada para responder una pregunta:
+
+- FASE 1, báscula vacía — ¿Transmite algo en reposo?
+- FASE 2, pesaje normal — La base de comparación.
+- FASE 3, pesaje con la botella — Un delta de peso conocido y medido aparte.
+- FASE 4, reinicio — ¿Qué les pasa a los bytes "fijos" cuando se corta la corriente?
+- FASE 5, carga retirada — ¿Qué emite justo después de bajarse?
+
+El código de esta sesión guiada está disponible en el repositorio del proyecto: [captura_guiada.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/captura_guiada.py).
+
+Para la diferencia de peso utilicé una botella de agua con 2,7 L de agua. Este fue el resultado:
+
+<Image src={sesionGuiada1} alt="Resultados de la sesión guiada: pesajes" width={1200} />
+
+<Image src={sesionGuiada2} alt="Resultados de la sesión guiada: pesaje con la botella" width={1200} />
+
+El peso — bytes 1 y 2. Cada pesaje estable cumplía la misma fórmula: unidades × 0.005 = kilogramos, exacto:
+
+| LCD   | Bytes (LE) | Decimal | × 0.005 |
+| ----- | ---------- | ------- | ------- |
+| 77.60 | a0 3c      | 15520   | 77.60   |
+| 80.35 | c6 3e      | 16070   | 80.35   |
+| 77.40 | 78 3c      | 15480   | 77.40   |
+| 80.20 | a8 3e      | 16040   | 80.20   |
+
+Es decir: 200 unidades por kilogramo, o 5 gramos por unidad. La botella de agua, pesada aparte (~2,70 kg), caía en el mismo factor dentro de los ±50 g con los que la báscula asienta la medida. Y el dato encajaba con el análisis del bus UART del capítulo anterior: allí, 27,65 kg era `15 9A` en big-endian; aquí, el mismo valor viajaría como `9A 15`. Mismo dato, orden invertido, mismo factor — el simulador de hardware lo confirmó al devolver `3C 5A` para los 77,25 kg que BLE transmitía como `5a 3c`.
+
+El byte de control — byte 0. Aquí no hizo falta adivinar: cada valor coincidía con un comportamiento visible en el LCD:
+
+| Control | Qué pasaba                        |
+| ------- | --------------------------------- |
+| 00      | Báscula vacía, todo a cero        |
+| 02      | Alguien encima, peso fluctuando   |
+| 22      | Peso estabilizado                 |
+| 82      | Recién bajado, valor residual     |
+| A2      | Bajado, reteniendo el último peso |
+
+Leyendo los bytes como binario, tres flags emergen: el bit 5 (0x20) se enciende cuando la medida se estabiliza; el bit 7 (0x80) cuando se retira la carga — la báscula conserva el último peso unos instantes y después baja a 0.10 kg; y el bit 1 (0x02) está presente en toda trama que transporta una lectura. Queda una incógnita honesta: el bit 6 (0x40), que solo aparece en los transitorios al bajarse y que no es necesario para decodificar el peso.
+
+La fecha — bytes 3 a 9. En la captura cruda parecían los "bytes fijos": no lo eran, simplemente se movían lento. El último byte avanzaba en tiempo real, segundo a segundo (00:00:28 → 00:00:39 → 00:00:45). El experimento del reinicio lo reveló todo: al quitar las pilas, el contador volvió a 00:00 y el día retrocedió de 02 a 01; en el primer arranque el año apareció como 0000 y un instante después saltó a 1970 — la época Unix. No era un reloj: era un contador de tiempo desde el arranque, formateado como fecha absoluta porque la báscula nunca se sincronizó con la app.
+
+```
+22 78 3c b2 07 01 02 14 2a 26
+│  └─┬─┘ └──────┬──────────┘
+│   │           └ fecha/hora del contador de arranque: 1970-01-02 20:42:38
+│   └ peso little-endian: 0x3C78 = 15480 → 77.40 kg
+└ control: bit 5 estabilizado · bit 1 medición presente
+```
+
+Una vez finalizado el proceso de ingeniería inversa solo faltaba un último script que permitiera sacar los datos relevantes de la báscula directamente: [ScaleInterceptor](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+Su finalidad es empaquetar todo el conocimiento acumulado en una herramienta que cualquiera pueda usar sin repetir el análisis. Al ejecutarlo, el programa identifica la báscula automáticamente — detecta su MAC observando los paquetes de peso mientras te subes encima — y, una vez conocida, escucha en silencio sus emisiones registrando únicamente lo que interesa: los pesajes estabilizados, una línea por medición.
+
+<Image src={scriptFinalOutput} alt="Salida del script final registrando pesajes" width={1200} />
+
+Todo lo deducido en este artículo quedó codificado en el script: filtra por la MAC descubierta con bluetoothctl, ignora las tramas de fluctuación y de carga retirada gracias a los flags del byte de control, y convierte los dos bytes little-endian del peso con el factor 0.005. El resultado es un CSV limpio, con una línea por pesaje, listo para procesar o visualizar.
+
+El código completo y las instrucciones de uso están disponibles en el repositorio: [scale_interceptor.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+Por último, un vídeo del script funcionando en vivo junto con la báscula:
+
+<video controls playsinline preload="metadata" src="/videos/bascula-script-demo.mp4"></video>
+
+## Conclusión
+
+Con este script — o una modificación de él — se puede hacer un seguimiento del peso sin compartir datos personales con la nube. También se podría programar un ESP32 para dejarlo en el baño y no depender del ordenador; como ves, las posibilidades son infinitas. De hecho, proyectos de la comunidad como [openScale](https://github.com/oliexdev/openScale) llevan años manteniendo vivas básculas antiguas de Xiaomi. También dar el reconocimiento al GitHub de [ipanalytics](https://github.com/ipanalytics/Xiaomi-Scale-Unlocked-Reverse-Engineering/tree/main), este me ha servido de ayuda para comparar mis resultados, además de que él tiene una versión para la "body composition".
+
+Desgraciadamente, Xiaomi ya no deja emparejar este tipo de básculas antiguas con su nueva aplicación — a mí ya no me lo permite. Pero este tipo de proyectos son los que permiten vencer la obsolescencia programada. Espero que este artículo te haya servido de ayuda, entretenimiento y motivación para alguno de los tuyos. Muchas gracias por tu tiempo.

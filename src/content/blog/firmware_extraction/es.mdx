@@ -2,8 +2,15 @@
 title: "Firmware Extraction"
 description: "Como extraer el firmware de un dispositivo mediante el lector CH341A"
 pubDate: 2026-04-28
-tags: ["Hardware Hacking", "IoT", "Firmware Extraction"]
+tags: ["Hardware Hacking", "Firmware Extraction"]
 ---
+
+import { Image } from 'astro:assets';
+import Foto1 from './Foto1.webp';
+import Foto2 from './Foto2.webp';
+import Foto3 from './Foto3.webp';
+import Foto4 from './Foto4.webp';
+
 ## Extracción de firmware
 En esta guía aprenderás el proceso crítico para extraer la información de un chip Flash de manera debida. Analizaremos los tipos de chips más comunes en el ecosistema IoT, dónde encontrarlos y, lo más importante, cómo emplear debidamente el CH341A. Este programador es la opción low-cost por excelencia. A través de mi experiencia personal, te compartiré los trucos y precauciones necesarias para convertir esta herramienta barata en un aliado profesional.
 
@@ -13,11 +20,11 @@ El ecosistema IoT emplea una gran variedad de memorias flash. Las más comunes y
 
 Luego será más común encontrarnos memorias **WSON-8** de 8x6 o 5x6 en dispositivos IoT que necesiten un poco más de memoria. Para este tipo de memorias necesitaremos adaptadores específicos como el de la imagen de abajo; además, este tipo de memorias suelen dar bastantes problemas en lecturas con el CH341A. Para este tipo de memoria ya es recomendable invertir en un lector XGecu T48, que es la gama baja de esta marca por unos 60€ a día de hoy, pero este no soporta memorias eMMC; para ello necesitarías ya el T56.
 
-![Foto1](Foto1.webp)
+<Image src={Foto1} alt="Foto1" width={745} />
 
 Para un nivel más avanzado donde nos encontramos con memorias eMMC o MCU recomiendo el lector XGecu T76, es la herramienta profesional del sector y algunas veces nos encontramos este tipo de chips. Las memorias NAND, por cómo están diseñadas, requieren que el procesador lidie con errores, bloques dañados, etc. Una eMMC es una memoria NAND con un controlador integrado para delegar la tarea que antes gestionaba el procesador; este chip es autónomo en este sentido, por eso es más común encontrarlo en dispositivos complejos como: Smart Hubs, Pantallas Inteligentes, cuadros de mandos digitales y sistemas de entretenimiento, Gateways Industriales...
 
-![Foto2](Foto2.webp)
+<Image src={Foto2} alt="Foto2" width={756} />
 
 ## Etapas de la extracción del firmware
 
@@ -29,7 +36,7 @@ En este ejemplo se analizará la memoria flash chip **WINBOND W25X40CL**, un mod
 
 En este podemos encontrar la arquitectura, el diagrama de bloques, especificaciones técnicas... Una de las cosas más importantes es la configuración de pines del chip.
 
-![Foto3](Foto3.webp)
+<Image src={Foto3} alt="Foto3" width={1035} />
 
 También es importante identificar el **voltaje** que soporta el chip para luego configurar el lector; la mayoría son de 3.3V, pero también hay de 1.8V y de 5V.
 
@@ -37,7 +44,7 @@ También es importante identificar el **voltaje** que soporta el chip para luego
 
 Para realizar correctamente la lectura del chip hay que continuar el circuito electrónico de la memoria principal, por eso **es muy importante fijarse en el punto del chip**; este indicará la conexión /CS. Siguiendo la conexión del CS es muy sencillo colocarlo bien.
 
-![Foto4](Foto4.webp)
+<Image src={Foto4} alt="Foto4" width={1551} />
 
 La pinza SOIC-8 emplea el mismo tipo de conexión; sin embargo, en algunos modelos he tenido que desconectar el cable del VCC ya que me daba errores de conexión, dando energía al chip mediante la carga normal de la placa base, en este caso era el cable normal de energía de la cámara, esto con una placa base se puede hacer de forma sencilla.
 

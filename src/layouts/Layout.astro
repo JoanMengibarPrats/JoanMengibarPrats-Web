@@ -6,11 +6,13 @@ import { getLangFromUrl } from '../i18n/utils';
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
 }
 
 const { 
   title = "Joan Francesc Mengibar Prats",
-  description = "Portfolio y blog personal sobre ciberseguridad, IoT y hardware hacking."
+  description = "Portfolio y blog personal sobre ciberseguridad, IoT y hardware hacking.",
+  image,
 } = Astro.props;
 
 const lang = getLangFromUrl(Astro.url);
@@ -32,16 +34,15 @@ const lang = getLangFromUrl(Astro.url);
     <meta property="og:type" content="website" />
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
     <meta property="og:locale" content={lang === 'va' ? 'ca_ES' : lang === 'en' ? 'en_US' : 'es_ES'} />
+    {image && <meta property="og:image" content={new URL(image, Astro.site).href} />}
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={new URL(image, Astro.site).href} />}
     
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700;900&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
   </head>
   <body class="bg-black text-white">
     

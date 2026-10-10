@@ -1,0 +1,250 @@
+---
+title: "Smart Scale Reverse Engineering"
+description: "Analyzing the operation of a smart scale from a black-box approach"
+pubDate: 2026-10-13
+tags: ["Reverse Engineering", "IoT", "Black Box"]
+image: "/og-bascula.jpg"
+---
+
+import { Image } from 'astro:assets';
+import ScaleReverseEngineering from './ScaleReverseEngineering.astro';
+import basculaIntro from './bascula-intro.png';
+import placaLeds from './placa-leds.jpg';
+import placaComponentes from './placa-componentes.jpg';
+import medicionVoltaje from './medicion-voltaje.png';
+import analizadorLogico from './analizador-logico.jpg';
+import pulseviewSenales from './pulseview-senales.png';
+import pulseviewZoomBit from './pulseview-zoom-bit.png';
+import uartBaudrate9600 from './uart-baudrate-9600.png';
+import conexionUartUsb from './conexion-uart-usb.png';
+import uartOutputAscii from './uart-output-ascii.png';
+import uartComandosHex from './uart-comandos-hex.png';
+import medicionesHex from './mediciones-hex.png';
+import dongleBluetooth from './dongle-bluetooth.png';
+import bluetoothctlScan from './bluetoothctl-scan.png';
+import btmonCaptura from './btmon-captura.png';
+import captureRawOutput from './capture-raw-output.png';
+import sesionGuiada1 from './sesion-guiada-1.png';
+import sesionGuiada2 from './sesion-guiada-2.png';
+import scriptFinalOutput from './script-final-output.png';
+
+## Introduction
+
+In this article I will teach and reproduce a reverse engineering project whose goal is to extract unknown information from the **final product** — in this case, the [Xiaomi Smart Scale 2](https://www.mi.com/en/product/mi-smart-scale-2/).
+
+The idea for this project came while I was weighing myself on this smart scale. The scale communicates over Bluetooth with the mobile device to send the weight data (more advanced models also send extra data, such as body fat percentage), so it seemed like a good target for a didactic article.
+
+<Image src={basculaIntro} alt="Xiaomi Smart Scale 2" width={1200} />
+
+Below you will read my entire logical process for understanding this device, divided into three chapters: reconnaissance, hardware hacking and Bluetooth reverse engineering. After reading them, you will have a basic idea of how independent researchers create open-source software for commercial IoT devices.
+
+## Reconnaissance
+
+One of the first things when reverse engineering a product is getting to know its components and communication methods. The scale uses **Bluetooth 5.0** to transmit the sensitive data, and it relies on simple, cheap hardware to calculate the person's weight. To identify the hardware, I simply disassembled the scale.
+
+When I opened the scale I saw that it was quite simple: 4 weight sensors, one in each corner, connected to a board the size of a Raspberry Pi Pico 2. On this side you can see the scale's LEDs, an interface with several ports and the connections to the sensors and to the power supply:
+
+<Image src={placaLeds} alt="Side of the board with the LEDs and the connections" width={1200} />
+
+On the other side we can identify the most important components of the board: the CPU, the flash memory and the signal antenna. Unfortunately I did not have the tools needed to extract the firmware from that chip or from the board's interface; this could be done with a JTAG reader or simply by desoldering the chip and reading the firmware. If you are interested in that process, I have an introductory guide: [Firmware Extraction](/en/blog/firmware_extraction)
+
+<Image src={placaComponentes} alt="Side of the board with the CPU, the flash memory and the antenna" width={1200} />
+
+However, there were two very well-known pins on that interface: Tx and Rx. Tx comes from Transmitter and Rx from Receiver; as their names imply, one sends electrical signals and the other receives them. These interfaces are used in production both to flash the firmware and to test it, so we can use them to extract information through a USB-UART adapter.
+
+The first thing I needed to know was the voltage used for transmission; usually it is **3.3V** but some boards use **5V**, and it is very important to know this to avoid shorting the adapter. To measure the voltage I connected my multimeter's COM to the board's GND and the red probe to TX, with the multimeter in DC mode.
+
+<Image src={medicionVoltaje} alt="Measuring the TX pin voltage with the multimeter" width={1200} />
+
+Once I confirmed the voltage is 3.3V, I still needed the speed at which Tx transmits; the speed of electrical signal transmission is measured in baud. The most common frequency is 115,200 baud, but that is not a standard and depends on the manufacturer, so here I will show you how to calculate the baud rate of a UART transmission.
+
+## Hardware Reverse Engineering
+
+For this part I chose to use my logic analyzer. A logic analyzer is a measurement instrument that captures data from a digital circuit and displays it for later analysis.
+
+As you can see in the image, GND connects to GND, Tx to CH1 and Rx to CH2:
+
+<Image src={analizadorLogico} alt="Logic analyzer connected to the board" width={1200} />
+
+Then I opened PulseView, configured it and got the following signals when the board powers up:
+
+<Image src={pulseviewSenales} alt="Signals captured with PulseView when the board powers up" width={1200} />
+
+Once I had the capture, I zoomed into the first captured data of D0:
+
+<Image src={pulseviewZoomBit} alt="Zoom into the first captured data of D0" width={1200} />
+
+After zooming in, what I care about is the shortest time interval in which a bit changes, from 0 to 1; so I selected the smallest "mountain" and marked its start and end with two points. This subtracts point A (start time) from point B (end time), giving a period of 105 microseconds. With that, the formula is very simple:
+
+Baudrate = 1 / time per bit (seconds) = 1 / 0.000105 = 9523
+
+Which I rounded to the most common baud rate: 9600.
+
+<Image src={uartBaudrate9600} alt="Logic analyzer configured at 9600 baud" width={1200} />
+
+Once configured in the logic analyzer I could see meaningful bit frames and no error messages, so I already had the voltage (3.3V) and the baud rate (9600 baud) — time to move to the USB-UART adapter.
+
+To connect the board's UART to USB we must connect GND to GND, the board's Tx to the adapter's Rx and the board's Rx to the adapter's Tx. On this board it is very easy to identify them because they are labeled in plain text, but many boards do not label these pins; to identify Tx you can use the multimeter measuring its voltage when the device powers on — in the first seconds Tx sends information, creating a fluctuation in the voltage.
+
+<Image src={conexionUartUsb} alt="Connecting the board's UART to the USB adapter" width={1200} />
+
+Note also that the VCC switch is set to 3.3V.
+
+If we read the USB output as ASCII, the text makes almost no sense, but we can at least confirm that the reading works:
+
+<Image src={uartOutputAscii} alt="Serial output in ASCII format" width={1200} />
+
+So, with the following commands, I decided to read the output in hexadecimal to see what data it was sending:
+
+<Image src={uartComandosHex} alt="Commands to read the output in hexadecimal" width={1200} />
+
+This data appeared as soon as the scale was powered, and a new sequence appeared every time I weighed something on it, so I assumed it was the final weight calculation transmitted to the LEDs. After several measurements, noting the final weight and the hex format as in the following sample:
+
+<Image src={medicionesHex} alt="Samples of measurements in hexadecimal" width={1200} />
+
+At this point I used artificial intelligence to detect patterns in the data, and it reached the following conclusion:
+
+- **Header (`AA 51`):** Synchronization bytes. They tell the receiver: _"Attention, a data packet is starting"_.
+- **Command (`03`):** Identifies the type of payload. In this device, `03` means the following data corresponds to a weighing.
+- **Payload / Weight (`15 9A`):** The core of our data. Since it travels over a physical cable, the microcontroller uses **Big Endian** format (the most significant byte first, following the natural human reading order).
+- **State (`02`):** A binary indicator (flag). This `02` tells the display that the weight is final and it should stop blinking.
+- **Checksum (`75`):** A checksum that guarantees the electrical integrity of the message and prevents corrupted readings caused by interference on the board.
+
+If we take the payload in hexadecimal and convert it to decimal: 5530. Then multiply it by 0.005 and we get: **27.65**, which is the final weight that the scale's display transmits. I verified this conversion in every measurement I took, proving that the data conversion is correct and is the one the scale presumably performs, thus completing my understanding of the scale's hardware.
+
+To better understand how it works, I programmed this scale simulation where you can enter any weight:
+
+<ScaleReverseEngineering lang="en" />
+
+## Bluetooth Reverse Engineering
+
+For the Bluetooth communication with my scale I used a Zexmte adapter with support up to BLE 6.0, like the one in the following image:
+
+<Image src={dongleBluetooth} alt="Zexmte Bluetooth adapter" width={1200} />
+
+The scale does not implement any authentication method: when a person steps on it, it broadcasts the measurement data. Any device in range can read it — you don't even need to know the MAC beforehand, a simple scan reveals it.
+
+At first I didn't know whether I was facing an encrypted communication. It was unlikely, given how simple the hardware is, but I had to make sure. To rule it out, I took a passive capture of the BLE packets while weighing myself: no pairing or connecting was needed; the frames travel in cleartext inside the advertisements.
+
+First things first: I discovered the MAC with `bluetoothctl` in Kali. It is very easy to identify because it comes with the `MI SCALE2` label:
+
+<Image src={bluetoothctlScan} alt="Discovering the scale with bluetoothctl" width={1200} />
+
+With the `sudo btmon` command I log the packets that my dongle is capturing; these are the scale's:
+
+<Image src={btmonCaptura} alt="BLE packets of the scale captured with btmon" width={1200} />
+
+As you can see in the capture, the BLE packets reveal a lot of valuable information: we can see that it is a scale, the company, and the data it sends in Data [10]. What we are missing is what exactly each of those values means.
+
+To find out, I was not starting from zero: the hardware analysis had already given me clues, but I needed clean data. I started with the simplest possible script — filtering by the discovered MAC, it dumped each packet exactly as it arrived:
+
+```python
+import asyncio
+from bleak import BleakScanner
+
+MAC = "70:87:9E:35:9D:F0"  # the MAC address we found with bluetoothctl
+
+def on_packet(device, adv_data):
+    # only care about our scale
+    if device.address.upper() != MAC:
+        return
+    # an advertisement can contain several data sections
+    for uuid, payload in adv_data.service_data.items():
+        print(f"[{uuid}]  {payload.hex(' ')}")
+
+async def main():
+    scanner = BleakScanner(detection_callback=on_packet)
+    await scanner.start()
+
+    while True:
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+The full script is available in the repository: [capture_raw.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/capture_raw.py).
+
+When I stepped on the scale weighing 77.25 kg, these packets arrived:
+
+<Image src={captureRawOutput} alt="Output of the first capture script" width={1200} />
+
+Three observations stand out:
+
+1. It repeats. Each frame arrives two or more times in a row. The scale does not wait for anyone to ask: it retransmits its information constantly while it has something to say.
+
+2. It is not a static packet. Comparing the first and the last line, the frame changes over time: the first byte alternates between three values (02, 22 and a2), the next one changes at some point (64 → 5a), and the last byte slowly advances (1a → 21 → 1c → 24).
+
+3. There is a fixed part. The five central bytes (b2 07 01 02 05) do not change throughout the capture — it smells like identifiers or configuration.
+
+At this point I decided to compare the extracted data with the data explained earlier in the Hardware Hacking process. If you enter the weight 77.25 kg in the scale emulator from before, you will see that the Big Endian field reads: `3C 5A`; in little endian this value is expressed as: `5a 3c` — the values that appear in the second and third byte of the capture above. So we can assume the weight conversion factor is the same: Little Endian (`5a 3c`) --> Hex (`0x3C5A`) --> Decimal (15450) --> 15450 x 0.005 = 77.25 kg.
+
+Once I had a solid idea of the possible values, I had to prove them. I wrote a second script that guided me through a controlled experiment session: in each phase I changed a single condition and logged the raw packets together with what the LCD showed.
+
+The five phases, each designed to answer a question:
+
+- PHASE 1, empty scale — Does it transmit anything at rest?
+- PHASE 2, normal weighing — The comparison baseline.
+- PHASE 3, weighing with the bottle — A known weight delta, measured separately.
+- PHASE 4, reboot — What happens to the "fixed" bytes when the power is cut?
+- PHASE 5, weight removed — What does it emit right after stepping off?
+
+The code for this guided session is available in the project's repository: [captura_guiada.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/captura_guiada.py).
+
+For the weight difference I used a water bottle with 2.7 L of water. This was the result:
+
+<Image src={sesionGuiada1} alt="Guided session results: weighings" width={1200} />
+
+<Image src={sesionGuiada2} alt="Guided session results: weighing with the bottle" width={1200} />
+
+The weight — bytes 1 and 2. Every stable weighing followed the same formula: units × 0.005 = kilograms, exactly:
+
+| LCD   | Bytes (LE) | Decimal | × 0.005 |
+| ----- | ---------- | ------- | ------- |
+| 77.60 | a0 3c      | 15520   | 77.60   |
+| 80.35 | c6 3e      | 16070   | 80.35   |
+| 77.40 | 78 3c      | 15480   | 77.40   |
+| 80.20 | a8 3e      | 16040   | 80.20   |
+
+That is: 200 units per kilogram, or 5 grams per unit. The water bottle, weighed separately (~2.70 kg), fell on the same factor within the ±50 g with which the scale settles the measurement. And the data matched the UART bus analysis from the previous chapter: there, 27.65 kg was `15 9A` in big-endian; here, the same value would travel as `9A 15`. Same data, inverted order, same factor — the hardware simulator confirmed it by returning `3C 5A` for the 77.25 kg that BLE transmitted as `5a 3c`.
+
+The control byte — byte 0. No guessing was needed here: each value matched a behavior visible on the LCD:
+
+| Control | What was happening                |
+| ------- | --------------------------------- |
+| 00      | Empty scale, all zeros            |
+| 02      | Someone on it, weight fluctuating |
+| 22      | Weight stabilized                 |
+| 82      | Just stepped off, residual value  |
+| A2      | Stepped off, holding the last weight |
+
+Reading the bytes as binary, three flags emerge: bit 5 (0x20) turns on when the measurement stabilizes; bit 7 (0x80) when the load is removed — the scale keeps the last weight for a few moments and then drops to 0.10 kg; and bit 1 (0x02) is present in every frame that carries a reading. One honest unknown remains: bit 6 (0x40), which only appears in the step-off transients and is not needed to decode the weight.
+
+The date — bytes 3 to 9. In the raw capture they looked like the "fixed bytes": they weren't, they just moved slowly. The last byte advanced in real time, second by second (00:00:28 → 00:00:39 → 00:00:45). The reboot experiment revealed everything: after removing the batteries, the counter went back to 00:00 and the day went back from 02 to 01; on the first boot the year appeared as 0000 and a moment later jumped to 1970 — the Unix epoch. It was not a clock: it was an uptime counter since boot, formatted as an absolute date because the scale was never synced with the app.
+
+```
+22 78 3c b2 07 01 02 14 2a 26
+│  └─┬─┘ └──────┬──────────┘
+│   │           └ uptime counter date/time: 1970-01-02 20:42:38
+│   └ little-endian weight: 0x3C78 = 15480 → 77.40 kg
+└ control: bit 5 stabilized · bit 1 measurement present
+```
+
+Once the reverse engineering process was finished, only one last script was missing — one that could extract the relevant data from the scale directly: [ScaleInterceptor](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+Its purpose is to package all the accumulated knowledge into a tool that anyone can use without repeating the analysis. When executed, the program identifies the scale automatically — it detects its MAC by watching the weight packets while you step on it — and, once known, it silently listens to its emissions recording only what matters: the stabilized weighings, one line per measurement.
+
+<Image src={scriptFinalOutput} alt="Output of the final script logging weighings" width={1200} />
+
+Everything deduced in this article was codified into the script: it filters by the MAC discovered with bluetoothctl, ignores the fluctuation and load-removed frames thanks to the control byte flags, and converts the two little-endian weight bytes with the 0.005 factor. The result is a clean CSV, with one line per weighing, ready to process or visualize.
+
+The complete code and the usage instructions are available in the repository: [scale_interceptor.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+Finally, a video of the script working live together with the scale:
+
+<video controls playsinline preload="metadata" src="/videos/bascula-script-demo.mp4"></video>
+
+## Conclusion
+
+With this script — or a modification of it — you can track your weight without sharing personal data with the cloud. You could also program an ESP32 to leave it in the bathroom and not depend on the computer; as you can see, the possibilities are endless. In fact, community projects like [openScale](https://github.com/oliexdev/openScale) have been keeping old Xiaomi scales alive for years. I also want to give credit to [ipanalytics](https://github.com/ipanalytics/Xiaomi-Scale-Unlocked-Reverse-Engineering/tree/main) on GitHub, which helped me compare my results — and he even has a version for the "body composition" scale.
+
+Unfortunately, Xiaomi no longer allows pairing this kind of old scales with its new application — it doesn't allow me anymore. But these kinds of projects are the ones that let us defeat planned obsolescence. I hope this article has served you as help, entertainment and motivation for one of your own. Thank you very much for your time.

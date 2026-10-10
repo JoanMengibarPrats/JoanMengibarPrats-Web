@@ -35,7 +35,7 @@ const splitIntoHackerLetters = (text: string) => {
   <div class="relative z-10 w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mt-20 lg:mt-5">
     
     <div class="w-full">
-      <div class="relative overflow-hidden border border-zinc-800 group interactable">
+      <div class="relative overflow-hidden border border-zinc-800">
         <Image 
           src={aboutImage} 
           alt="Joan Francesc" 
@@ -43,9 +43,8 @@ const splitIntoHackerLetters = (text: string) => {
           height={750}
           loading="lazy"
           decoding="async"
-          class="w-full h-auto object-cover aspect-[4/3] md:aspect-video grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-105"
+          class="w-full h-auto object-cover aspect-[4/3] md:aspect-video"
         />
-        <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-500"></div>
       </div>
     </div>
 

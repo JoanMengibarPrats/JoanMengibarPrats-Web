@@ -1,30 +1,34 @@
 ---
+import { getImage } from 'astro:assets';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import idleSprite from '../assets/game/samoyed-idle-front.png';
+import talkSprite from '../assets/game/samoyed-talk.png';
+import treatSprite from '../assets/game/samoyed-treat.png';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const idleSpriteUrl = "/images/samoyed-idle-front.png"; 
-const talkSpriteUrl = "/images/samoyed-talk.png"; 
-const treatSpriteUrl = "/images/samoyed-treat.png"; 
+const idleSpriteUrl = idleSprite.src; 
+const talkSpriteUrl = talkSprite.src; 
+const treatSpriteUrl = (await getImage({ src: treatSprite, format: 'webp', quality: 90 })).src; 
 ---
 
 <section id="dog-game" class="w-full min-h-screen bg-black relative flex flex-col items-center justify-center overflow-hidden border-t border-zinc-900 pb-12 md:pb-0">
   
   <div class="w-full absolute inset-0 pointer-events-none z-20">
-    <div class="px-6 md:px-0 absolute md:left-12 lg:left-24 top-4 sm:top-8 md:top-20 lg:top-28 pointer-events-auto">
+    <div class="px-6 md:px-0 absolute md:left-12 lg:left-24 top-4 sm:top-8 md:top-12 lg:top-20 xl:top-24 pointer-events-auto">
       <div class="interactable flex flex-col items-start">
-        <h2 class="text-white font-syncopate font-bold text-5xl md:text-7xl lg:text-[clamp(3rem,7vw,7rem)] uppercase tracking-tighter mb-4 lg:mb-6 whitespace-normal xl:whitespace-nowrap">
+        <h2 class="text-white font-syncopate font-bold text-5xl md:text-6xl lg:text-[min(clamp(3rem,7vw,7rem),9vh)] uppercase tracking-tighter mb-4 lg:mb-6 whitespace-normal xl:whitespace-nowrap">
           {t('maya.title.1')} <span class="text-green-500">MAYA</span>
         </h2>
-        <p id="maya-description" class="font-fira text-sm md:text-base text-gray-300 leading-relaxed tracking-wider max-w-sm md:max-w-lg transition-opacity duration-300 opacity-100">
+        <p id="maya-description" class="font-fira text-sm md:text-base text-gray-300 leading-relaxed tracking-wider max-w-sm md:max-w-md xl:max-w-lg [@media(max-height:860px)]:md:text-sm transition-opacity duration-300 opacity-100">
           {t('maya.desc')}
         </p>
       </div>
     </div>
   </div>
 
-  <div class="absolute bottom-12 right-6 md:bottom-20 md:right-12 lg:right-24 z-30 flex flex-col gap-4 pointer-events-auto items-end">
+  <div class="absolute bottom-10 right-6 md:bottom-14 md:right-8 lg:bottom-20 lg:right-24 z-30 flex flex-col gap-4 pointer-events-auto items-end">
 
     <div 
       id="maya-dialog-data"
@@ -54,17 +58,19 @@ const treatSpriteUrl = "/images/samoyed-treat.png";
     </div>
   </div>
 
-  <div id="dialogue-box" class="absolute top-[25%] md:top-[30%] left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none opacity-0 transition-opacity duration-300 w-[90%] md:w-full">
+  <div id="dialogue-box" class="absolute top-[28%] sm:top-[30%] md:top-[34%] lg:top-[38%] left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none opacity-0 transition-opacity duration-300 w-[90%] md:w-full">
     <p id="dialogue-text" class="font-syncopate text-xl sm:text-2xl md:text-4xl text-white font-bold tracking-widest drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] transition-all duration-200">
     </p>
   </div>
 
   <div class="absolute bottom-0 z-10 w-full flex justify-center items-end pointer-events-none">
-    <div id="maya-anim-container" class="relative w-[75vw] md:w-[45vh] max-w-[380px] max-h-[70vh] aspect-[255/403] overflow-hidden"> 
+    <div id="maya-anim-container" class="relative w-[75vw] md:w-[clamp(220px,42vh,380px)] max-h-[70vh] aspect-[255/403] overflow-hidden"> 
       <img 
         id="maya-idle"
         src={idleSpriteUrl} 
         alt="Maya" 
+        loading="lazy"
+        decoding="async"
         class="samoyed-idle absolute left-0 h-[84.4%] bottom-[16%] max-w-none opacity-100 transition-opacity duration-0"
       />
       
@@ -72,13 +78,15 @@ const treatSpriteUrl = "/images/samoyed-treat.png";
         id="maya-talk"
         src={talkSpriteUrl} 
         alt="Maya Hablando" 
+        loading="lazy"
+        decoding="async"
         class="samoyed-talk absolute left-0 h-[84.4%] bottom-[16%] max-w-none opacity-0 transition-opacity duration-0"
       />
       
       <div 
         id="maya-treat" 
+        data-treat-src={treatSpriteUrl}
         class="samoyed-treat absolute left-0 bottom-0 w-full h-full opacity-0 transition-opacity duration-0"
-        style={`background-image: url(${treatSpriteUrl});`}
       ></div>
     </div>
   </div>
@@ -142,8 +150,13 @@ const treatSpriteUrl = "/images/samoyed-treat.png";
 
     let isAnimating = false;
 
-    const imgTalk = new Image();
-    imgTalk.src = "/images/samoyed-talk.png";
+    let talkPreloaded = false;
+    btnHablar?.addEventListener('pointerenter', () => {
+      if (talkPreloaded || !mayaTalk) return;
+      talkPreloaded = true;
+      const preload = new Image();
+      preload.src = mayaTalk.src;
+    });
     
     const TREAT_COLS = 14;
     const TREAT_ROWS = 9;
@@ -223,6 +236,11 @@ const treatSpriteUrl = "/images/samoyed-treat.png";
     btnTreat?.addEventListener('click', () => {
         if (isAnimating) return; 
         isAnimating = true;
+
+        if (mayaTreat && !mayaTreat.style.backgroundImage) {
+            const treatSrc = mayaTreat.dataset.treatSrc;
+            if (treatSrc) mayaTreat.style.backgroundImage = `url(${treatSrc})`;
+        }
 
         toggleMobileDescription(false);
 

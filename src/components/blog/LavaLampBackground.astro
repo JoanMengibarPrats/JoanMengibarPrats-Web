@@ -22,6 +22,11 @@
     position: absolute;
     background-color: #ffffff;
     border-radius: 50%;
+    will-change: transform;
+  }
+
+  .lava-container.is-paused .blob {
+    animation-play-state: paused;
   }
 
   .blob-1 {
@@ -90,3 +95,18 @@
     100% { transform: translate(300px, -150px) scale(1.1); }
   }
 </style>
+
+<script>
+  const lavaWrapper = document.querySelector('.lava-wrapper');
+  const lavaContainer = lavaWrapper?.querySelector('.lava-container');
+
+  if (lavaWrapper && lavaContainer && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        lavaContainer.classList.toggle('is-paused', !entry.isIntersecting);
+      });
+    }, { rootMargin: '100px 0px' });
+
+    observer.observe(lavaWrapper);
+  }
+</script>

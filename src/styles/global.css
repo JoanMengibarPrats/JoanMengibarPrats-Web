@@ -1,24 +1,10 @@
 @import "tailwindcss";
+@import "@fontsource/syncopate/400.css";
+@import "@fontsource/syncopate/700.css";
 @plugin "@tailwindcss/typography";
 
-@font-face {
-  font-family: 'Syncopate Local';
-  src: url('/fonts/Syncopate-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Syncopate Local';
-  src: url('/fonts/Syncopate-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
-  --font-syncopate: 'Syncopate Local', sans-serif;
+  --font-syncopate: 'Syncopate', sans-serif;
 }
 
 ::selection {

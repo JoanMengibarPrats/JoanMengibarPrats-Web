@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
 
 import sitemap from '@astrojs/sitemap';
+import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   site: 'https://joanmengibarprats.com',
@@ -23,5 +24,5 @@ export default defineConfig({
     ]
   },
 
-  integrations: [sitemap()]
+  integrations: [sitemap(), mdx()]
 });

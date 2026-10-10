@@ -2,7 +2,7 @@
 import Layout from './Layout.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 
-const { title, description, pubDate, tags } = Astro.props;
+const { title, description, pubDate, tags, image } = Astro.props;
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -15,7 +15,9 @@ const formattedDate = pubDate.toLocaleDateString(
 );
 ---
 
-<Layout title={`${title} | Joan Francesc`}>
+<Layout title={`${title} | Joan Francesc`} image={image}>
+
+  <div id="reading-progress" class="fixed top-0 left-0 w-full h-[2px] bg-green-500 origin-left z-[60] pointer-events-none" style="transform: scaleX(0);"></div>
   
   <div class="flex w-full min-h-screen justify-center">
     
@@ -198,6 +200,179 @@ const formattedDate = pubDate.toLocaleDateString(
     transition: filter 0.5s ease;
   }
   .minimal-prose img:hover { filter: grayscale(0%) contrast(1); }
+
+  .minimal-prose table {
+    width: 100%;
+    margin: 3rem 0;
+    border-collapse: collapse;
+    border: 1px solid #27272a;
+    font-size: 0.9rem;
+    color: #d4d4d8;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .minimal-prose thead th {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #22c55e;
+    border-bottom: 1px solid #22c55e;
+    background: rgba(34, 197, 94, 0.05);
+    white-space: nowrap;
+  }
+
+  .minimal-prose tbody td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #27272a;
+    white-space: nowrap;
+  }
+
+  .minimal-prose tbody tr:hover td {
+    background: rgba(34, 197, 94, 0.03);
+  }
+
+  .minimal-prose table code {
+    color: #4ade80;
+    font-size: 0.85em;
+  }
+
+  .minimal-prose video {
+    width: 100%;
+    max-height: 78vh;
+    margin: 3rem 0;
+    border: 1px solid #27272a;
+    background: #000;
+  }
+
+  .img-wrap {
+    position: relative;
+    margin: 3rem 0;
+  }
+
+  .img-wrap img {
+    margin: 0;
+    display: block;
+    cursor: zoom-in;
+  }
+
+  .img-zoom-btn {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    color: #d4d4d8;
+    opacity: 0.55;
+    cursor: pointer;
+    outline: none;
+    transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .img-zoom-btn:hover {
+    opacity: 1;
+    border-color: #22c55e;
+    color: #22c55e;
+  }
+
+  .img-zoom-btn:focus-visible {
+    opacity: 1;
+    border-color: #22c55e;
+    color: #22c55e;
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+  }
+
+  .img-zoom-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+    padding: 1.5rem;
+    cursor: zoom-out;
+  }
+
+  .lightbox-overlay figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+  }
+
+  .lightbox-overlay img {
+    max-width: 95vw;
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: 0;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .lightbox-caption {
+    margin: 1rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #a1a1aa;
+    text-align: center;
+    max-width: 60ch;
+    cursor: default;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    color: #d4d4d8;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .lightbox-close:hover {
+    border-color: #22c55e;
+    color: #22c55e;
+  }
+
+  .lightbox-close:focus-visible {
+    border-color: #22c55e;
+    color: #22c55e;
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+  }
+
+  .lightbox-close svg {
+    width: 20px;
+    height: 20px;
+  }
 </style>
 
 <script>
@@ -269,5 +444,122 @@ const formattedDate = pubDate.toLocaleDateString(
 
     window.addEventListener('scroll', updateToc, { passive: true });
     updateToc();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const progressBar = document.getElementById('reading-progress');
+    if (!progressBar) return;
+
+    let rafId: number | null = null;
+
+    const updateProgress = () => {
+      rafId = null;
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+      progressBar.style.transform = `scaleX(${progress})`;
+    };
+
+    const requestUpdate = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate, { passive: true });
+    updateProgress();
+  });
+</script>
+
+<script>
+  import gsap from "gsap";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const prose = document.querySelector('.minimal-prose');
+    if (!prose) return;
+
+    const images = Array.from(prose.querySelectorAll('img'));
+
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Imagen ampliada');
+    overlay.style.display = 'none';
+
+    const figure = document.createElement('figure');
+    const bigImg = document.createElement('img');
+    const caption = document.createElement('figcaption');
+    caption.className = 'lightbox-caption';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'lightbox-close';
+    closeBtn.setAttribute('aria-label', 'Cerrar imagen');
+    closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>`;
+
+    figure.appendChild(bigImg);
+    figure.appendChild(caption);
+    overlay.appendChild(closeBtn);
+    overlay.appendChild(figure);
+    document.body.appendChild(overlay);
+
+    let lastFocus: HTMLElement | null = null;
+
+    const openLightbox = (img: HTMLImageElement, trigger: HTMLElement) => {
+      lastFocus = trigger;
+      bigImg.src = img.currentSrc || img.src;
+      bigImg.alt = img.alt || '';
+      caption.textContent = img.alt || '';
+      caption.style.display = caption.textContent ? '' : 'none';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      gsap.set(overlay, { opacity: 0 });
+      gsap.to(overlay, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+      gsap.fromTo(figure, { scale: 0.92 }, { scale: 1, duration: 0.25, ease: 'power2.out' });
+      closeBtn.focus();
+    };
+
+    const closeLightbox = () => {
+      if (overlay.style.display === 'none') return;
+      gsap.to(overlay, {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: () => {
+          overlay.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+      });
+      if (lastFocus) lastFocus.focus();
+    };
+
+    closeBtn.addEventListener('click', closeLightbox);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    images.forEach((img) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'img-wrap';
+      img.parentNode?.insertBefore(wrap, img);
+      wrap.appendChild(img);
+
+      const btn = document.createElement('button');
+      btn.className = 'img-zoom-btn';
+      btn.setAttribute('aria-label', 'Ampliar imagen');
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M11 8v6M8 11h6"/></svg>`;
+      wrap.appendChild(btn);
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openLightbox(img, btn);
+      });
+      img.addEventListener('click', () => openLightbox(img, img));
+    });
   });
 </script>

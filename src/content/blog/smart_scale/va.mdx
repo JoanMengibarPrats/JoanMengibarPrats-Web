@@ -1,0 +1,250 @@
+---
+title: "Enginyeria Inversa d'una Bàscula Intel·ligent"
+description: "Analitzant el funcionament d'una bàscula intel·ligent des d'un enfocament de caixa negra"
+pubDate: 2026-10-13
+tags: ["Enginyeria Inversa", "IoT", "Caixa Negra"]
+image: "/og-bascula.jpg"
+---
+
+import { Image } from 'astro:assets';
+import ScaleReverseEngineering from './ScaleReverseEngineering.astro';
+import basculaIntro from './bascula-intro.png';
+import placaLeds from './placa-leds.jpg';
+import placaComponentes from './placa-componentes.jpg';
+import medicionVoltaje from './medicion-voltaje.png';
+import analizadorLogico from './analizador-logico.jpg';
+import pulseviewSenales from './pulseview-senales.png';
+import pulseviewZoomBit from './pulseview-zoom-bit.png';
+import uartBaudrate9600 from './uart-baudrate-9600.png';
+import conexionUartUsb from './conexion-uart-usb.png';
+import uartOutputAscii from './uart-output-ascii.png';
+import uartComandosHex from './uart-comandos-hex.png';
+import medicionesHex from './mediciones-hex.png';
+import dongleBluetooth from './dongle-bluetooth.png';
+import bluetoothctlScan from './bluetoothctl-scan.png';
+import btmonCaptura from './btmon-captura.png';
+import captureRawOutput from './capture-raw-output.png';
+import sesionGuiada1 from './sesion-guiada-1.png';
+import sesionGuiada2 from './sesion-guiada-2.png';
+import scriptFinalOutput from './script-final-output.png';
+
+## Introducció
+
+En el següent article s'ensenyarà i reproduirà un treball d'enginyeria inversa amb la finalitat d'obtindre una informació desconeguda des del **producte final**, en aquest cas la bàscula [Xiaomi Smart Scale 2](https://www.mi.com/en/product/mi-smart-scale-2/).
+
+La idea d'aquest projecte va sorgir mentre em pesava en aquesta bàscula intel·ligent. Aquesta bàscula es comunica mitjançant bluetooth amb el dispositiu mòbil per a enviar les dades del pes (en models més avançats envia més dades, com el percentatge de greix etc) per la qual cosa em va semblar un bon objectiu per a redactar un article didàctic.
+
+<Image src={basculaIntro} alt="Bàscula Xiaomi Smart Scale 2" width={1200} />
+
+A continuació llegiràs tot el meu procés lògic per a entendre aquest dispositiu, separat en tres capítols: reconeixement, maquinari hacking i enginyeria inversa de Bluetooth. Una vegada llegits tindràs una idea bàsica de com investigadors independents creen programari de codi lliure de dispositius IoT comercials.
+
+## Reconeixement
+
+Una de les primeres coses a l'hora de realitzar enginyeria inversa en un producte és la de conéixer els seus components i mètodes de comunicació. La bàscula empra una comunicació **Bluetooth 5.0** per a transmetre les dades sensibles, a més, disposa d'un maquinari senzill i econòmic per a calcular el pes de la persona, per a identificar el maquinari simplement he desmuntat la bàscula.
+
+En desmuntar la bàscula vaig veure que el seu funcionament era simple, 4 sensors de pes, un en cada cantonada, connectats a una placa base de la grandària d'una raspberry pi pico 2. En aquesta part de la cara es poden veure els leds de la bàscula, una interfície amb diferents ports i les connexions amb els sensors i amb la font d'alimentació:
+
+<Image src={placaLeds} alt="Cara de la placa base amb els LEDs i les connexions" width={1200} />
+
+En aquesta altra cara podem identificar els elements més importants de la placa base, la CPU, la memòria flash i l'antena de senyal. Malauradament no disposava de les ferramentes necessàries per a extraure el firmware d'aquest xip ni de la interfície de la placa, això es podria realitzar amb un lector jtag o simplement desoldant el xip i llegint el firmware, si t'interessa més aquest procés, dispose d'una guia introductòria: [Extracció de Firmware](/va/blog/firmware_extraction)
+
+<Image src={placaComponentes} alt="Cara de la placa base amb la CPU, la memòria flash i l'antena" width={1200} />
+
+No obstant això, hi havia uns pins molt coneguts en aquesta interfície, el Tx i el Rx. Tx ve de Transmissor i Rx de Receiver, com el seu nom indica, un envia senyals elèctriques i l'altre les rep. Aquestes interfícies s'empren en producció tant per a flashejar el firmware com per a testejar el seu correcte funcionament, per la qual cosa les podem emprar per a obtindre informació mitjançant un adaptador USB UART.
+
+El primer que necessitava saber era el voltatge que emprava a l'hora de transmetre, normalment empren **3.3V** però altres empren **5V**, és molt important saber-ho per a no curtcircuitar l'adaptador. Per a mesurar el voltatge vaig connectar el COM del meu multímetre al GND de la placa base i el cable roig al TX, amb el multímetre mesurant en contínua.
+
+<Image src={medicionVoltaje} alt="Mesura del voltatge del pin TX amb el multímetre" width={1200} />
+
+Una vegada confirmat que el voltatge és 3,3V falta saber a quina velocitat transmet el Tx, la velocitat de transmissió de senyals elèctriques es mesura en bauds. La freqüència més comuna és la de 115.000 Bauds, no obstant això no és un estàndard i depèn del fabricant, per això ací et vaig a ensenyar com es calculen els bauds d'una transmissió UART.
+
+## Hardware Reverse Engineering
+
+Per a aquesta part vaig optar per utilitzar el meu analitzador lògic. Un analitzador lògic és un instrument de mesura que captura les dades d'un circuit digital i les mostra per a la seua posterior anàlisi.
+
+Com es veu en la imatge, es connecta el GND amb el GND, el Tx amb el CH1 i el Rx amb el CH2:
+
+<Image src={analizadorLogico} alt="Analitzador lògic connectat a la placa base" width={1200} />
+
+Després òbric el programa pulseview, ho configure i obting les següents senyals quan la placa base s'encén:
+
+<Image src={pulseviewSenales} alt="Senyals capturades amb PulseView en encendre la placa" width={1200} />
+
+Quan tinc la còpia faig zoom a les primeres dades capturades del D0:
+
+<Image src={pulseviewZoomBit} alt="Zoom de les primeres dades capturades del D0" width={1200} />
+
+Una vegada fet el zoom el que m'interessa és saber el menor interval de temps en el qual es canvia d'un bit a un altre, de 0 a 1, per això seleccione la "muntanya" més petita i marque amb dos punts l'inici i el final d'aquesta, això el que realment fa és restar el punt A (inici del temps) al punt B (final del temps) Calculant així el període de 105 microsegons. Una vegada ho tinc la fórmula és molt senzilla:
+
+Baudrate = 1 / Temps per bit (segons) = 1 / 0.000105 = 9523
+
+Aquest ho redone a l'emissió de baudrate més comuna que és 9600.
+
+<Image src={uartBaudrate9600} alt="Analitzador lògic configurat a 9600 bauds" width={1200} />
+
+Una vegada configurat en l'analitzador lògic puc veure trames de bits amb sentit i cap missatge d'error, per la qual cosa ja tinc el voltatge (3.3V) i el baudrate (9600 bauds), és hora de passar a l'adaptador USB UART.
+
+Per a connectar l'UART de la placa base a l'USB hem de connectar el GND amb el GND, el Tx de la placa base amb el Rx de l'adaptador i el Rx de la placa base amb el Tx de l'adaptador. En aquesta placa base és molt senzill identificar-los ja que estan identificats amb text pla, però moltes vegades aquests pins no tenen la identificació, per a identificar el Tx es pot emprar el multímetre mesurant el seu voltatge en encendre el dispositiu, en els primers segons el Tx enviarà informació, creant una fluctuació en el voltatge.
+
+<Image src={conexionUartUsb} alt="Connexió de l'UART de la placa a l'adaptador USB" width={1200} />
+
+Cal destacar també que l'interruptor VCC està a 3,3V.
+
+Si llegim l'output de l'USB en format ASCII el text pràcticament no té sentit, no obstant això podem confirmar que la lectura és correcta:
+
+<Image src={uartOutputAscii} alt="Eixida del port sèrie en format ASCII" width={1200} />
+
+Per la qual cosa mitjançant les següents comandes vaig decidir traure l'output en hexadecimal per a veure quines dades mostrava:
+
+<Image src={uartComandosHex} alt="Comandes per a llegir l'eixida en hexadecimal" width={1200} />
+
+Aquestes dades apareixien només donar-li energia a la bàscula, cada vegada que pesava alguna cosa en ella apareixia una seqüència nova, per la qual cosa vaig suposar que era el càlcul i transmissió final del pes als leds. Mitjançant diverses mesures, anotant el pes final i el format hexadecimal com la següent mostra:
+
+<Image src={medicionesHex} alt="Mostres de mesures en hexadecimal" width={1200} />
+
+En aquest punt vaig utilitzar intel·ligència artificial per a detectar patrons en les dades, aquesta va arribar a la següent conclusió:
+
+- **Capçalera (`AA 51`):** Són els bytes de sincronització. Li diuen al receptor: _"Atenció, comença un paquet de dades"_.
+- **Comanda (`03`):** Identifica el tipus de càrrega útil. En aquest dispositiu, el `03` indica que les dades a continuació corresponen a un pesatge.
+- **Càrrega Útil / Pes (`15 9A`):** El nucli de la nostra dada. En viatjar per un cable físic, el microcontrolador utilitza el format **Big Endian** (el byte de major pes va primer, seguint l'ordre lògic de lectura humà).
+- **Estat (`02`):** Un indicador (flag) binari. Aquest `02` li confirma a la pantalla que el pes és definitiu i ha de deixar de parpellejar.
+- **Checksum (`75`):** Una suma de verificació per a garantir la integritat elèctrica del missatge i evitar lectures corruptes per interferències en la placa.
+
+Si agafem la càrrega útil en hexadecimal, la passem a decimal: 5530. I després la multipliquem per 0,005 obtenim: **27.65**, que és el pes final que transmet el marcador de la bàscula, aquesta mesura l'he comprovada en cadascuna de les mesures preses, demostrant així que la conversió de les dades és correcta i és la que suposadament realitza la bàscula, finalitzant així l'enteniment del funcionament del maquinari de la bàscula.
+
+Per a entendre millor aquest funcionament he programat aquesta simulació de bàscula, en aquesta li pots posar el pes que vulgues:
+
+<ScaleReverseEngineering lang="va" />
+
+## Bluetooth Reverse Engineering
+
+Per a la comunicació Bluetooth amb la meua bàscula vaig emprar un adaptador Zexmte amb suport fins a BLE 6.0, com el que apareix en la següent imatge:
+
+<Image src={dongleBluetooth} alt="Adaptador Bluetooth Zexmte" width={1200} />
+
+La bàscula no implementa cap mètode d'autenticació: quan una persona es puja, emet un broadcast amb les dades de la mesura. Qualsevol dispositiu en rang pot llegir-les — ni tan sols fa falta conéixer la MAC per endavant, un simple escaneig la revela.
+
+Al principi no sabia si m'enfrontava a una comunicació xifrada. Era poc probable, atés el senzill que és el maquinari, però havia d'assegurar-ho. Per a descartar-ho vaig realitzar una captura passiva dels paquets BLE mentre em pesava: no va fer falta emparellar ni connectar res; les trames viatgen en clar dins dels advertisements.
+
+Abans que res: la MAC la vaig descobrir amb `bluetoothctl` en Kali. És molt senzilla d'identificar ja que ve acompanyada de l'etiqueta `MI SCALE2`:
+
+<Image src={bluetoothctlScan} alt="Descobriment de la bàscula amb bluetoothctl" width={1200} />
+
+Amb la comanda `sudo btmon` registre els paquets que s'estan capturant des del meu dongle, aquests són els de la bàscula:
+
+<Image src={btmonCaptura} alt="Paquets BLE de la bàscula capturats amb btmon" width={1200} />
+
+Com es veu en la captura, en els paquets BLE s'identifica molta informació valuosa, podem veure que és una bàscula, la companyia i les dades que envia en el Data [10], el que ens falta és saber què és exactament cadascun d'aquests valors.
+
+Per a esbrinar-ho no partia de zero: l'anàlisi del maquinari ja m'havia donat pistes, però necessitava dades netes. Vaig començar amb el script més simple possible — filtrant per la MAC descoberta, bolcava cada paquet tal qual arribava:
+
+```python
+import asyncio
+from bleak import BleakScanner
+
+MAC = "70:87:9E:35:9D:F0"  # the MAC address we found with bluetoothctl
+
+def on_packet(device, adv_data):
+    # only care about our scale
+    if device.address.upper() != MAC:
+        return
+    # an advertisement can contain several data sections
+    for uuid, payload in adv_data.service_data.items():
+        print(f"[{uuid}]  {payload.hex(' ')}")
+
+async def main():
+    scanner = BleakScanner(detection_callback=on_packet)
+    await scanner.start()
+
+    while True:
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+El script complet està disponible en el repositori: [capture_raw.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/capture_raw.py).
+
+En el moment de pujar-me i pesar 77,25 kg van arribar els següents paquets:
+
+<Image src={captureRawOutput} alt="Eixida del primer script de captura" width={1200} />
+
+Tres observacions salten a la vista:
+
+1. Es repeteix. Cada trama arriba dues o més vegades seguides. La bàscula no espera que ningú li pregunte: retransmet la seua informació constantment mentre té alguna cosa a dir.
+
+2. No és un paquet estàtic. Comparant la primera i l'última línia, la trama canvia amb el temps: el primer byte alterna entre tres valors (02, 22 i a2), el següent canvia en algun moment (64 → 5a), i l'últim byte avança a poc a poc (1a → 21 → 1c → 24).
+
+3. Hi ha una part fixa. Els cinc bytes centrals (b2 07 01 02 05) no canvien en tota la captura — fa olor d'identificadors o configuració.
+
+En aquest moment vaig decidir comparar les dades extretes amb les anteriors explicades en el procés del Hardware Hacking. Si t'animes a col·locar el pes: 77,25 kg en l'emulador de la bàscula anterior podràs veure que en l'apartat Big Endian marca: `3C 5A`, aquest valor en little endian s'expressa com: `5a 3c`, valors que apareixen en el segon i tercer byte de la captura de la imatge anterior, per la qual cosa es pot suposar que el factor de conversió del pes és el mateix: Little Endian (`5a 3c`) --> Hex (`0x3C5A`) --> Decimal (15450) --> 15450 x 0.005 = 77,25 kg.
+
+Una vegada que vaig tindre un concepte sòlid dels possibles valors, calia demostrar-los. Vaig escriure un segon script que em guiava per una sessió d'experiments controlats: en cada fase variava una única condició i registrava els paquets crus juntament amb el que marcava el LCD.
+
+Les cinc fases, cadascuna pensada per a respondre una pregunta:
+
+- FASE 1, bàscula buida — Transmet alguna cosa en repòs?
+- FASE 2, pesatge normal — La base de comparació.
+- FASE 3, pesatge amb la botella — Un delta de pes conegut i mesurat a part.
+- FASE 4, reinici — Què els passa als bytes "fixos" quan es talla el corrent?
+- FASE 5, càrrega retirada — Què emet just després de baixar-se?
+
+El codi d'aquesta sessió guiada està disponible en el repositori del projecte: [captura_guiada.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/captura_guiada.py).
+
+Per a la diferència de pes vaig utilitzar una botella d'aigua amb 2,7 L d'aigua. Aquest va ser el resultat:
+
+<Image src={sesionGuiada1} alt="Resultats de la sessió guiada: pesatges" width={1200} />
+
+<Image src={sesionGuiada2} alt="Resultats de la sessió guiada: pesatge amb la botella" width={1200} />
+
+El pes — bytes 1 i 2. Cada pesatge estable complia la mateixa fórmula: unitats × 0.005 = quilograms, exacte:
+
+| LCD   | Bytes (LE) | Decimal | × 0.005 |
+| ----- | ---------- | ------- | ------- |
+| 77.60 | a0 3c      | 15520   | 77.60   |
+| 80.35 | c6 3e      | 16070   | 80.35   |
+| 77.40 | 78 3c      | 15480   | 77.40   |
+| 80.20 | a8 3e      | 16040   | 80.20   |
+
+És a dir: 200 unitats per quilogram, o 5 grams per unitat. La botella d'aigua, pesada a part (~2,70 kg), queia en el mateix factor dins dels ±50 g amb els quals la bàscula assenta la mesura. I la dada encaixava amb l'anàlisi del bus UART del capítol anterior: allí, 27,65 kg era `15 9A` en big-endian; ací, el mateix valor viatjaria com `9A 15`. Mateixa dada, ordre invertit, mateix factor — el simulador de maquinari ho va confirmar en retornar `3C 5A` per als 77,25 kg que BLE transmetia com `5a 3c`.
+
+El byte de control — byte 0. Ací no va fer falta endevinar: cada valor coincidia amb un comportament visible en el LCD:
+
+| Control | Què passava                        |
+| ------- | --------------------------------- |
+| 00      | Bàscula buida, tot a zero         |
+| 02      | Algú damunt, pes fluctuant        |
+| 22      | Pes estabilitzat                  |
+| 82      | Acabat de baixar, valor residual  |
+| A2      | Baixat, retenint l'últim pes      |
+
+Llegint els bytes com a binari, tres flags emergeixen: el bit 5 (0x20) s'encén quan la mesura s'estabilitza; el bit 7 (0x80) quan es retira la càrrega — la bàscula conserva l'últim pes uns instants i després baixa a 0.10 kg; i el bit 1 (0x02) està present en tota trama que transporta una lectura. Queda una incògnita honesta: el bit 6 (0x40), que només apareix en els transitoris en baixar-se i que no és necessari per a decodificar el pes.
+
+La data — bytes 3 a 9. En la captura crua semblaven els "bytes fixos": no ho eren, simplement es movien lent. L'últim byte avançava en temps real, segon a segon (00:00:28 → 00:00:39 → 00:00:45). L'experiment del reinici ho va revelar tot: en llevar les piles, el comptador va tornar a 00:00 i el dia va retrocedir de 02 a 01; en la primera arrancada l'any va aparéixer com 0000 i un instant després va saltar a 1970 — l'època Unix. No era un rellotge: era un comptador de temps des de l'arrancada, formatat com a data absoluta perquè la bàscula mai es va sincronitzar amb l'app.
+
+```
+22 78 3c b2 07 01 02 14 2a 26
+│  └─┬─┘ └──────┬──────────┘
+│   │           └ data/hora del comptador d'arrencada: 1970-01-02 20:42:38
+│   └ pes little-endian: 0x3C78 = 15480 → 77.40 kg
+└ control: bit 5 estabilitzat · bit 1 mesura present
+```
+
+Una vegada finalitzat el procés d'enginyeria inversa només faltava un últim script que permetera traure les dades rellevants de la bàscula directament: [ScaleInterceptor](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+La seua finalitat és empaquetar tot el coneixement acumulat en una ferramenta que qualsevol puga usar sense repetir l'anàlisi. En executar-lo, el programa identifica la bàscula automàticament — detecta la seua MAC observant els paquets de pes mentre et puges damunt — i, una vegada coneguda, escolta en silenci les seues emissions registrant únicament el que interessa: els pesatges estabilitzats, una línia per mesura.
+
+<Image src={scriptFinalOutput} alt="Eixida del script final registrant pesatges" width={1200} />
+
+Tot el deduït en aquest article va quedar codificat en el script: filtra per la MAC descoberta amb bluetoothctl, ignora les trames de fluctuació i de càrrega retirada gràcies als flags del byte de control, i converteix els dos bytes little-endian del pes amb el factor 0.005. El resultat és un CSV net, amb una línia per pesatge, llest per a processar o visualitzar.
+
+El codi complet i les instruccions d'ús estan disponibles en el repositori: [scale_interceptor.py](https://github.com/JoanMengibarPrats/ScaleInterceptor/blob/main/scale_interceptor.py).
+
+Finalment, un vídeo del script funcionant en viu juntament amb la bàscula:
+
+<video controls playsinline preload="metadata" src="/videos/bascula-script-demo.mp4"></video>
+
+## Conclusió
+
+Amb aquest script — o una modificació d'ell — es pot fer un seguiment del pes sense compartir dades personals amb el núvol. També es podria programar un ESP32 per a deixar-lo al bany i no dependre de l'ordinador; com veus, les possibilitats són infinites. De fet, projectes de la comunitat com [openScale](https://github.com/oliexdev/openScale) porten anys mantenint vives bàscules antigues de Xiaomi. També donar el reconeixement al GitHub de [ipanalytics](https://github.com/ipanalytics/Xiaomi-Scale-Unlocked-Reverse-Engineering/tree/main), aquest m'ha servit d'ajuda per a comparar els meus resultats, a més que ell té una versió per a la "body composition".
+
+Malauradament, Xiaomi ja no deixa emparellar aquest tipus de bàscules antigues amb la seua nova aplicació — a mi ja no m'ho permet. Però aquest tipus de projectes són els que permeten véncer l'obsolescència programada. Espere que aquest article t'haja servit d'ajuda, entreteniment i motivació per a algun dels teus. Moltes gràcies pel teu temps.

@@ -14,7 +14,7 @@ interface Props {
 const { 
   title = "Joan Francesc Mengibar Prats",
   description = "Portfolio y blog personal sobre ciberseguridad, IoT y hardware hacking.",
-  image,
+  image = "/og-home.jpg",
   pubDate,
   ogType = "website",
 } = Astro.props;
@@ -39,6 +39,10 @@ const lang = getLangFromUrl(Astro.url);
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
     <meta property="og:locale" content={lang === 'va' ? 'ca_ES' : lang === 'en' ? 'en_US' : 'es_ES'} />
     {image && <meta property="og:image" content={new URL(image, Astro.site).href} />}
+    {image && <meta property="og:image:width" content="1200" />}
+    {image && <meta property="og:image:height" content="630" />}
+    {image && <meta property="og:image:alt" content={title} />}
+    <meta property="og:site_name" content="Joan Francesc Mengibar Prats" />
     {pubDate && <meta property="article:published_time" content={pubDate.toISOString()} />}
     {pubDate && <meta property="article:author" content="https://www.linkedin.com/in/joanfrancescmengibarprats" />}
     {pubDate && <meta name="author" content="Joan Francesc Mengibar Prats" />}
@@ -47,6 +51,7 @@ const lang = getLangFromUrl(Astro.url);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={new URL(image, Astro.site).href} />}
+    {image && <meta name="twitter:image:alt" content={title} />}
     
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     
